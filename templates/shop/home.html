@@ -92,11 +92,13 @@
         </a>
         <div class="product-info">
           <h3><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h3>
+          {% if product.short_description %}<p class="card-desc">{{ product.short_description }}</p>{% endif %}
           {% if card.price %}
             <p class="price">
               {% if card.multiple %}ab {% endif %}{{ card.price|floatformat:2 }} €
               {% if card.compare %}<span class="old-price">{{ card.compare|floatformat:2 }} €</span>{% endif %}
             </p>
+            {% if SHOP_TAX_NOTE %}<p class="card-tax">{{ SHOP_TAX_NOTE }}</p>{% endif %}
           {% endif %}
           {% if card.colors %}
             <p class="card-swatches">

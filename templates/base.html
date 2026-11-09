@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#121613" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#18181b" media="(prefers-color-scheme: dark)">
   <script>
     (function () {
       var root = document.documentElement;
@@ -59,7 +59,10 @@
         <span class="icon-label">Menü</span>
       </button>
 
-      <a class="logo" href="{% url 'shop:home' %}">{{ SITE_NAME }}<span>.</span></a>
+      <a class="logo" href="{% url 'shop:home' %}">
+        <span class="logo-mark" aria-hidden="true">{{ SITE_NAME|first|upper }}</span>
+        <span class="logo-text">{{ SITE_NAME }}<small>Online-Shop aus Österreich</small></span>
+      </a>
 
       <nav class="main-nav" id="main-nav" aria-label="Hauptnavigation">
         <a href="{% url 'shop:home' %}">Startseite</a>
@@ -100,10 +103,17 @@
   </main>
 
   <footer class="site-footer">
+    <div class="footer-usp">
+      <div class="container footer-usp-inner">
+        {% if store.free_shipping_threshold %}<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>Versandkostenfrei ab {{ store.free_shipping_threshold|floatformat:0 }}&nbsp;€</span>{% endif %}
+        {% if store.returns_note %}<span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>{{ store.returns_note }}</span>{% endif %}
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Sichere &amp; verschlüsselte Zahlung</span>
+      </div>
+    </div>
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <p class="footer-logo">{{ SITE_NAME }}<span>.</span></p>
+          <p class="footer-logo"><span class="logo-mark" aria-hidden="true">{{ SITE_NAME|first|upper }}</span>{{ SITE_NAME }}</p>
           {% if SITE_DESCRIPTION %}<p class="footer-text">{{ SITE_DESCRIPTION }}</p>{% endif %}
           {% if store.contact_email or store.contact_phone %}
             <p class="footer-contact">

@@ -19,7 +19,7 @@ SEO_NOINDEX = env.bool("SEO_NOINDEX", default=False)
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
 STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
 SHOP_CURRENCY = env("SHOP_CURRENCY", default="eur")
-SHOP_TAX_NOTE = env("SHOP_TAX_NOTE", default="inkl. MwSt., zzgl. Versandkosten")
+SHOP_TAX_NOTE = env("SHOP_TAX_NOTE", default="inkl. USt., zzgl. Versandkosten")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -31,6 +31,7 @@ INSTALLED_APPS = [
     "django.contrib.sitemaps",
     "accounts",
     "shop",
+    "pages",
 ]
 
 AUTH_USER_MODEL = "accounts.User"
@@ -59,6 +60,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "config.context_processors.site",
                 "shop.context_processors.cart",
+                "pages.context_processors.footer_pages",
             ],
         },
     },
@@ -78,7 +80,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LANGUAGE_CODE = "de"
-TIME_ZONE = "Europe/Berlin"
+TIME_ZONE = "Europe/Vienna"
 USE_I18N = True
 USE_TZ = True
 

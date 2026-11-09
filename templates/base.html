@@ -1,5 +1,5 @@
 {% load static %}<!DOCTYPE html>
-<html lang="de">
+<html lang="de-AT">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,7 +9,7 @@
   {% block robots %}{% if SEO_NOINDEX %}<meta name="robots" content="noindex, nofollow">{% endif %}{% endblock %}
 
   <meta property="og:site_name" content="{{ SITE_NAME }}">
-  <meta property="og:locale" content="de_DE">
+  <meta property="og:locale" content="de_AT">
   <meta property="og:type" content="{% block og_type %}website{% endblock %}">
   <meta property="og:title" content="{% block og_title %}{{ SITE_NAME }}{% endblock %}">
   <meta property="og:description" content="{% block og_description %}{{ SITE_DESCRIPTION }}{% endblock %}">
@@ -47,6 +47,13 @@
   <footer class="site-footer">
     <div class="container footer-inner">
       <p>&copy; {% now "Y" %} {{ SITE_NAME }}</p>
+      {% if footer_pages %}
+        <nav class="footer-nav" aria-label="Rechtliches">
+          {% for p in footer_pages %}
+            <a href="{{ p.get_absolute_url }}">{{ p.title }}</a>
+          {% endfor %}
+        </nav>
+      {% endif %}
     </div>
   </footer>
 

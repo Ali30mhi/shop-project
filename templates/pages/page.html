@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} | {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}{{ page.meta_description|default:page.title }}{% endblock %}
+
+{% block content %}
+<article class="legal-page">
+  <h1>{{ page.title }}</h1>
+  {% if page.body %}
+    {{ page.rendered_body }}
+  {% else %}
+    <p class="muted">Dieser Inhalt wird in Kürze ergänzt.</p>
+  {% endif %}
+  <p class="muted small">Stand: {{ page.updated_at|date:"d.m.Y" }}</p>
+</article>
+{% endblock %}

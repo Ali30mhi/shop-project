@@ -24,8 +24,8 @@ class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductVariantInline, ProductImageInline]
     fieldsets = (
         (None, {"fields": ("name", "slug", "is_active")}),
-        ("Content", {"fields": ("short_description", "description")}),
-        ("SEO", {"fields": ("meta_title", "meta_description")}),
+        ("Inhalt", {"fields": ("short_description", "description")}),
+        ("Suchmaschinen (SEO)", {"fields": ("meta_title", "meta_description")}),
     )
 
 

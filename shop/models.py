@@ -8,26 +8,31 @@ from django.utils.text import slugify
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=220, unique=True, blank=True)
-    short_description = models.CharField(max_length=300, blank=True)
-    description = models.TextField(blank=True)
+    name = models.CharField("Name", max_length=200)
+    slug = models.SlugField(
+        "URL-Kürzel", max_length=220, unique=True, blank=True,
+        help_text="Wird automatisch aus dem Namen erzeugt.",
+    )
+    short_description = models.CharField("Kurzbeschreibung", max_length=300, blank=True)
+    description = models.TextField("Beschreibung", blank=True)
     meta_title = models.CharField(
-        max_length=70,
-        blank=True,
-        help_text="Title in Google results (about 60 characters). Empty = product name.",
+        "SEO-Titel", max_length=70, blank=True,
+        help_text="Titel in den Google-Ergebnissen (ca. 60 Zeichen). Leer = Produktname.",
     )
     meta_description = models.CharField(
-        max_length=160,
-        blank=True,
-        help_text="Snippet in Google results (about 150 characters). Empty = short description.",
+        "SEO-Beschreibung", max_length=160, blank=True,
+        help_text="Text in den Google-Ergebnissen (ca. 150 Zeichen). Leer = Kurzbeschreibung.",
     )
-    is_active = models.BooleanField(default=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(
+        "Aktiv", default=True, help_text="Deaktivierte Produkte sind im Shop nicht sichtbar.",
+    )
+    created_at = models.DateTimeField("Erstellt am", auto_now_add=True)
+    updated_at = models.DateTimeField("Geändert am", auto_now=True)
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name = "Produkt"
+        verbose_name_plural = "Produkte"
 
     def __str__(self):
         return self.name
@@ -63,39 +68,43 @@ class Product(models.Model):
 
 
 class ProductImage(models.Model):
-    product = models.ForeignKey(Product, related_name="images", on_delete=models.CASCADE)
-    image = models.ImageField(upload_to="products/%Y/%m/")
+    product = models.ForeignKey(Product, verbose_name="Produkt", related_name="images", on_delete=models.CASCADE)
+    image = models.ImageField("Bild", upload_to="products/%Y/%m/")
     alt_text = models.CharField(
-        max_length=200,
-        help_text="Short description of the image, for Google and screen readers.",
+        "Alt-Text", max_length=200,
+        help_text="Kurze Bildbeschreibung für Google und Screenreader.",
     )
-    sort_order = models.PositiveIntegerField(default=0)
+    sort_order = models.PositiveIntegerField("Reihenfolge", default=0)
 
     class Meta:
         ordering = ["sort_order", "id"]
+        verbose_name = "Produktbild"
+        verbose_name_plural = "Produktbilder"
 
     def __str__(self):
         return self.alt_text
 
 
 class ProductVariant(models.Model):
-    product = models.ForeignKey(Product, related_name="variants", on_delete=models.CASCADE)
-    name = models.CharField(max_length=100, help_text='For example "Large / Black" or "500 g".')
-    sku = models.CharField(max_length=64, unique=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2, validators=[MinValueValidator(Decimal("0.01"))])
-    compare_at_price = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        null=True,
-        blank=True,
-        help_text="Old price, shown crossed out. Leave empty if there is no discount.",
+    product = models.ForeignKey(Product, verbose_name="Produkt", related_name="variants", on_delete=models.CASCADE)
+    name = models.CharField("Variante", max_length=100, help_text="z. B. „Groß / Schwarz“ oder „500 g“.")
+    sku = models.CharField("Artikelnummer (SKU)", max_length=64, unique=True)
+    price = models.DecimalField(
+        "Preis (€)", max_digits=10, decimal_places=2,
+        validators=[MinValueValidator(Decimal("0.01"))],
     )
-    stock = models.PositiveIntegerField(default=0)
-    is_active = models.BooleanField(default=True)
-    sort_order = models.PositiveIntegerField(default=0)
+    compare_at_price = models.DecimalField(
+        "Streichpreis (€)", max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Alter Preis, wird durchgestrichen angezeigt. Leer lassen, wenn kein Rabatt.",
+    )
+    stock = models.PositiveIntegerField("Lagerbestand", default=0)
+    is_active = models.BooleanField("Aktiv", default=True)
+    sort_order = models.PositiveIntegerField("Reihenfolge", default=0)
 
     class Meta:
         ordering = ["sort_order", "price"]
+        verbose_name = "Variante"
+        verbose_name_plural = "Varianten"
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"
@@ -107,59 +116,59 @@ class ProductVariant(models.Model):
 
 class Order(models.Model):
     class Status(models.TextChoices):
-        PENDING = "pending", "Pending payment"
-        PAID = "paid", "Paid"
-        SHIPPED = "shipped", "Shipped"
-        CANCELLED = "cancelled", "Cancelled"
+        PENDING = "pending", "Zahlung ausstehend"
+        PAID = "paid", "Bezahlt"
+        SHIPPED = "shipped", "Versendet"
+        CANCELLED = "cancelled", "Storniert"
 
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="orders",
+        settings.AUTH_USER_MODEL, verbose_name="Kundenkonto",
+        null=True, blank=True, on_delete=models.SET_NULL, related_name="orders",
     )
-    email = models.EmailField()
-    full_name = models.CharField(max_length=200, blank=True)
-    phone = models.CharField(max_length=30, blank=True)
-    shipping_address = models.TextField(blank=True)
-    currency = models.CharField(max_length=3, default="eur")
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
-    status = models.CharField(max_length=10, choices=Status.choices, default=Status.PENDING)
+    email = models.EmailField("E-Mail")
+    full_name = models.CharField("Name", max_length=200, blank=True)
+    phone = models.CharField("Telefon", max_length=30, blank=True)
+    shipping_address = models.TextField("Lieferadresse", blank=True)
+    currency = models.CharField("Währung", max_length=3, default="eur")
+    total = models.DecimalField("Gesamtbetrag", max_digits=10, decimal_places=2, default=Decimal("0"))
+    status = models.CharField("Status", max_length=10, choices=Status.choices, default=Status.PENDING)
 
-    stripe_session_id = models.CharField(max_length=255, blank=True, db_index=True)
-    stripe_invoice_id = models.CharField(max_length=255, blank=True)
-    invoice_number = models.CharField(max_length=100, blank=True)
-    invoice_url = models.URLField(max_length=500, blank=True)
-    invoice_pdf_url = models.URLField(max_length=500, blank=True)
+    stripe_session_id = models.CharField("Stripe-Session-ID", max_length=255, blank=True, db_index=True)
+    stripe_invoice_id = models.CharField("Stripe-Rechnungs-ID", max_length=255, blank=True)
+    invoice_number = models.CharField("Rechnungsnummer", max_length=100, blank=True)
+    invoice_url = models.URLField("Rechnung (online)", max_length=500, blank=True)
+    invoice_pdf_url = models.URLField("Rechnung (PDF)", max_length=500, blank=True)
 
-    created_at = models.DateTimeField(auto_now_add=True)
-    paid_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField("Bestellt am", auto_now_add=True)
+    paid_at = models.DateTimeField("Bezahlt am", null=True, blank=True)
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name = "Bestellung"
+        verbose_name_plural = "Bestellungen"
 
     def __str__(self):
-        return f"Order #{self.pk}"
+        return f"Bestellung #{self.pk}"
 
     def recalculate_total(self):
         self.total = sum((item.line_total for item in self.items.all()), Decimal("0"))
 
 
 class OrderItem(models.Model):
-    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, verbose_name="Bestellung", related_name="items", on_delete=models.CASCADE)
     variant = models.ForeignKey(
-        ProductVariant,
-        null=True,
-        blank=True,
-        on_delete=models.SET_NULL,
-        related_name="order_items",
+        ProductVariant, verbose_name="Variante",
+        null=True, blank=True, on_delete=models.SET_NULL, related_name="order_items",
     )
-    product_name = models.CharField(max_length=200)
-    variant_name = models.CharField(max_length=100, blank=True)
-    sku = models.CharField(max_length=64, blank=True)
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
-    quantity = models.PositiveIntegerField(default=1)
+    product_name = models.CharField("Produkt", max_length=200)
+    variant_name = models.CharField("Variante (Name)", max_length=100, blank=True)
+    sku = models.CharField("SKU", max_length=64, blank=True)
+    unit_price = models.DecimalField("Einzelpreis", max_digits=10, decimal_places=2)
+    quantity = models.PositiveIntegerField("Menge", default=1)
+
+    class Meta:
+        verbose_name = "Position"
+        verbose_name_plural = "Positionen"
 
     def __str__(self):
         return f"{self.quantity} x {self.product_name} ({self.variant_name})"

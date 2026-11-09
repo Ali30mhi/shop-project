@@ -5,19 +5,21 @@ from django.utils.safestring import mark_safe
 
 
 class Page(models.Model):
-    title = models.CharField(max_length=200)
-    slug = models.SlugField(max_length=100, unique=True)
+    title = models.CharField("Titel", max_length=200)
+    slug = models.SlugField("URL-Kürzel", max_length=100, unique=True)
     body = models.TextField(
-        blank=True,
+        "Inhalt", blank=True,
         help_text="Text oder HTML. Rechtstexte aus einem Generator können direkt eingefügt werden.",
     )
-    meta_description = models.CharField(max_length=160, blank=True)
-    show_in_footer = models.BooleanField(default=True)
-    footer_order = models.PositiveIntegerField(default=0)
-    updated_at = models.DateTimeField(auto_now=True)
+    meta_description = models.CharField("SEO-Beschreibung", max_length=160, blank=True)
+    show_in_footer = models.BooleanField("Im Footer anzeigen", default=True)
+    footer_order = models.PositiveIntegerField("Reihenfolge im Footer", default=0)
+    updated_at = models.DateTimeField("Zuletzt geändert", auto_now=True)
 
     class Meta:
         ordering = ["footer_order", "title"]
+        verbose_name = "Seite"
+        verbose_name_plural = "Seiten"
 
     def __str__(self):
         return self.title

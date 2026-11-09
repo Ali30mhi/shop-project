@@ -14,6 +14,7 @@ SITE_URL = env("SITE_URL", default="http://localhost:8000")
 
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
 STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
+SHOP_CURRENCY = env("SHOP_CURRENCY", default="eur")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -22,8 +23,11 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "accounts",
     "shop",
 ]
+
+AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

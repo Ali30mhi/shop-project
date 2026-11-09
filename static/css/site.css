@@ -82,3 +82,43 @@ h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); line-height: 1.2; margin: 0 0 1rem;
 
 .site-footer { border-top: 1px solid var(--border); padding: 2rem 0; color: var(--muted); font-size: .9rem; }
 .footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; }
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+}
+.muted { color: var(--muted); }
+.cart-link { font-weight: 600; }
+
+.messages { list-style: none; padding: 0; margin: 0 0 1.5rem; }
+.messages li { padding: .75rem 1rem; margin-bottom: .5rem; border-radius: var(--radius); background: var(--surface); }
+.messages .success { background: #e8f5e9; }
+.messages .warning, .messages .error { background: #fdecea; }
+
+.qty { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+.qty input, .qty-form input {
+  width: 4.5rem; padding: .5rem; font: inherit;
+  border: 1px solid var(--border); border-radius: 6px;
+}
+.btn-link {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: var(--accent); font: inherit; text-decoration: underline;
+}
+
+.cart { display: grid; gap: 2rem; }
+@media (min-width: 900px) {
+  .cart { grid-template-columns: 2fr 1fr; align-items: start; }
+}
+.cart-lines { list-style: none; margin: 0; padding: 0; }
+.cart-line {
+  display: grid; grid-template-columns: 96px 1fr auto; gap: .5rem 1rem;
+  align-items: center; padding: 1rem 0; border-bottom: 1px solid var(--border);
+}
+.cart-line img { grid-row: span 2; width: 96px; height: 96px; object-fit: cover; border-radius: var(--radius); }
+.cart-line-info { grid-column: 2; grid-row: 1; display: flex; flex-direction: column; }
+.cart-line-info a { color: var(--text); font-weight: 600; text-decoration: none; }
+.cart-line-total { grid-column: 3; grid-row: 1; text-align: right; white-space: nowrap; }
+.qty-form { grid-column: 2; grid-row: 2; display: flex; align-items: center; gap: .5rem; }
+.cart-line-remove { grid-column: 3; grid-row: 2; text-align: right; }
+
+.cart-summary { background: var(--surface); padding: 1.5rem; border-radius: var(--radius); }
+.cart-total { display: flex; justify-content: space-between; font-size: 1.15rem; margin: 0 0 .25rem; }

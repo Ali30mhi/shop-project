@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Warenkorb | {{ SITE_NAME }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<h1>Warenkorb</h1>
+
+{% if lines %}
+<div class="cart">
+  <ul class="cart-lines">
+    {% for line in lines %}
+      <li class="cart-line">
+        {% with image=line.product.main_image %}
+          {% if image %}
+            <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" width="96" height="96" loading="lazy">
+          {% endif %}
+        {% endwith %}
+
+        <div class="cart-line-info">
+          <a href="{{ line.product.get_absolute_url }}">{{ line.product.name }}</a>
+          <span class="muted">{{ line.variant.name }}</span>
+          <span class="muted">{{ line.variant.price|floatformat:2 }} € / Stück</span>
+        </div>
+
+        <strong class="cart-line-total">{{ line.line_total|floatformat:2 }} €</strong>
+
+        <form method="post" action="{% url 'shop:cart_update' line.variant.id %}" class="qty-form">
+          {% csrf_token %}
+          <label class="visually-hidden" for="qty-{{ line.variant.id }}">Menge</label>
+          <input id="qty-{{ line.variant.id }}" type="number" name="quantity"
+                 value="{{ line.quantity }}" min="1" max="{{ line.variant.stock }}">
+          <button type="submit" class="btn-link">Aktualisieren</button>
+        </form>
+
+        <form method="post" action="{% url 'shop:cart_remove' line.variant.id %}" class="cart-line-remove">
+          {% csrf_token %}
+          <button type="submit" class="btn-link">Entfernen</button>
+        </form>
+      </li>
+    {% endfor %}
+  </ul>
+
+  <aside class="cart-summary" aria-label="Zusammenfassung">
+    <p class="cart-total"><span>Zwischensumme</span><strong>{{ total|floatformat:2 }} €</strong></p>
+    <p class="tax-note">{{ SHOP_TAX_NOTE }}</p>
+    <button type="button" class="btn" disabled>Zur Kasse</button>
+  </aside>
+</div>
+{% else %}
+  <p>Ihr Warenkorb ist leer.</p>
+  <p><a href="{% url 'shop:home' %}">Weiter einkaufen</a></p>
+{% endif %}
+{% endblock %}

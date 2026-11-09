@@ -6,7 +6,7 @@
   <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}{{ SITE_DESCRIPTION }}{% endblock %}">
   <link rel="canonical" href="{% block canonical %}{{ SITE_URL }}{{ request.path }}{% endblock %}">
-  {% if SEO_NOINDEX %}<meta name="robots" content="noindex, nofollow">{% endif %}
+  {% block robots %}{% if SEO_NOINDEX %}<meta name="robots" content="noindex, nofollow">{% endif %}{% endblock %}
 
   <meta property="og:site_name" content="{{ SITE_NAME }}">
   <meta property="og:locale" content="de_DE">
@@ -28,11 +28,19 @@
       <a class="logo" href="{% url 'shop:home' %}">{{ SITE_NAME }}</a>
       <nav aria-label="Hauptnavigation">
         <a href="{% url 'shop:home' %}">Shop</a>
+        <a class="cart-link" href="{% url 'shop:cart' %}">Warenkorb{% if cart_count %} ({{ cart_count }}){% endif %}</a>
       </nav>
     </div>
   </header>
 
   <main id="main" class="container">
+    {% if messages %}
+      <ul class="messages" role="status">
+        {% for message in messages %}
+          <li class="{{ message.tags }}">{{ message }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 

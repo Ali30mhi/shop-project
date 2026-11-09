@@ -8,6 +8,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="hero-row">
 <section class="hero{% if store.hero_image %} has-image focus-{{ store.hero_image_position }}{% endif %}">
   <div class="hero-content">
     {% if store.hero_eyebrow %}<span class="eyebrow">{{ store.hero_eyebrow }}</span>{% endif %}
@@ -23,6 +24,46 @@
       {% responsive_image store.hero_image store.hero_image_alt sizes="(max-width: 860px) 100vw, 600px" loading="eager" fetchpriority="high" %}
     </div>
   {% endif %}
+</section>
+
+<div class="hero-tiles">
+  {% with featured=products|first %}
+    {% if featured %}
+      {% product_card featured as fcard %}
+      <a class="hero-tile hero-tile-product" href="{{ featured.get_absolute_url }}">
+        <span class="hero-tile-text">
+          <span class="eyebrow">Empfehlung</span>
+          <strong>{{ featured.name }}</strong>
+          {% if fcard.price %}<span class="hero-tile-price">{% if fcard.multiple %}ab {% endif %}{{ fcard.price|floatformat:2 }}&nbsp;€</span>{% endif %}
+          <span class="hero-tile-link">Zum Produkt <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+        </span>
+        {% with image=featured.main_image %}
+          {% if image %}{% responsive_image image.image "" sizes="140px" %}{% endif %}
+        {% endwith %}
+      </a>
+    {% endif %}
+  {% endwith %}
+  <a class="hero-tile hero-tile-accent" href="{% url 'pages:detail' 'versand-und-zahlung' %}">
+    <span class="pill">Versand</span>
+    <strong>{% if store.free_shipping_threshold %}Kostenloser Versand ab {{ store.free_shipping_threshold|floatformat:0 }}&nbsp;€{% elif store.delivery_time %}Lieferzeit: {{ store.delivery_time }}{% else %}Versand &amp; Zahlung{% endif %}</strong>
+    <span class="hero-tile-link">Mehr erfahren <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
+  </a>
+</div>
+</div>
+
+<section class="trust-bar" aria-label="Unsere Vorteile">
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+    <div>{{ store.benefit_1_title }}<span>{{ store.benefit_1_text }}</span></div>
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+    <div>{{ store.benefit_2_title }}<span>{{ store.benefit_2_text }}</span></div>
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <div>{{ store.benefit_3_title }}<span>{{ store.benefit_3_text }}</span></div>
+  </div>
 </section>
 
 <section id="produkte" class="products-section" aria-labelledby="produkte-titel">
@@ -91,18 +132,25 @@
   </p>
 </section>
 
-<section class="trust-bar" aria-label="Unsere Vorteile">
-  <div class="trust-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
-    <div>{{ store.benefit_1_title }}<span>{{ store.benefit_1_text }}</span></div>
+<section class="help-band" aria-labelledby="hilfe-titel">
+  <div class="help-text">
+    <h2 id="hilfe-titel">Fragen zu Ihrer Bestellung?</h2>
+    <p>Wir helfen Ihnen gern weiter.</p>
   </div>
-  <div class="trust-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
-    <div>{{ store.benefit_2_title }}<span>{{ store.benefit_2_text }}</span></div>
-  </div>
-  <div class="trust-item">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-    <div>{{ store.benefit_3_title }}<span>{{ store.benefit_3_text }}</span></div>
+  <div class="help-actions">
+    {% if store.contact_email %}
+      <a class="help-chip" href="mailto:{{ store.contact_email }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        {{ store.contact_email }}
+      </a>
+    {% endif %}
+    {% if store.contact_phone %}
+      <a class="help-chip" href="tel:{{ store.contact_phone|cut:' ' }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
+        {{ store.contact_phone }}
+      </a>
+    {% endif %}
+    <a class="help-chip help-chip-solid" href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a>
   </div>
 </section>
 {% endblock %}

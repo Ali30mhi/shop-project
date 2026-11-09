@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load shop_tags %}
 
 {% block title %}Warenkorb | {{ SITE_NAME }}{% endblock %}
 {% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
@@ -13,7 +14,7 @@
       <li class="cart-line">
         {% with image=line.product.main_image %}
           {% if image %}
-            <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" width="96" height="96" loading="lazy">
+            {% responsive_image image.image image.alt_text sizes="96px" %}
           {% endif %}
         {% endwith %}
 

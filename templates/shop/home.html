@@ -10,8 +10,7 @@
 {% block content %}
 <section class="hero">
   {% if store.hero_image %}
-    <img class="hero-image" src="{{ store.hero_image.url }}" alt="{{ store.hero_image_alt }}"
-         width="{{ store.hero_image.width }}" height="{{ store.hero_image.height }}" fetchpriority="high">
+    {% responsive_image store.hero_image store.hero_image_alt sizes="(max-width: 1248px) 100vw, 1200px" css_class="hero-image" loading="eager" fetchpriority="high" %}
   {% endif %}
   <div class="hero-content">
     {% if store.hero_eyebrow %}<span class="eyebrow">{{ store.hero_eyebrow }}</span>{% endif %}
@@ -52,9 +51,11 @@
           {% if card.tag %}<span class="tag{% if card.sale %} tag-sale{% endif %}">{{ card.tag }}</span>{% endif %}
           {% with image=product.main_image %}
             {% if image %}
-              <img src="{{ image.image.url }}" alt="{{ image.alt_text }}"
-                   width="{{ image.image.width }}" height="{{ image.image.height }}"
-                   {% if forloop.counter > 4 %}loading="lazy"{% endif %}>
+              {% if forloop.counter > 4 %}
+                {% responsive_image image.image image.alt_text sizes="(max-width: 760px) 50vw, (max-width: 960px) 33vw, 290px" %}
+              {% else %}
+                {% responsive_image image.image image.alt_text sizes="(max-width: 760px) 50vw, (max-width: 960px) 33vw, 290px" loading="eager" %}
+              {% endif %}
             {% endif %}
           {% endwith %}
         </a>

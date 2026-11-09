@@ -154,3 +154,7 @@ main { padding-top: 24px; padding-bottom: 64px; }
   .benefits { grid-template-columns: 1fr; gap: 8px; margin-bottom: 40px; }
   .products { grid-template-columns: repeat(2, 1fr); gap: 12px; }
 }
+
+html { scroll-behavior: smooth; }
+#produkte { scroll-margin-top: 24px; }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }

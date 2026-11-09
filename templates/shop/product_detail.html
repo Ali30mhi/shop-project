@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load shop_tags %}
 
 {% block title %}{{ product.seo_title }} | {{ SITE_NAME }}{% endblock %}
 {% block meta_description %}{{ product.seo_description }}{% endblock %}
@@ -23,9 +24,11 @@
 <div class="product">
   <div class="product-gallery">
     {% for img in images %}
-      <img src="{{ img.image.url }}" alt="{{ img.alt_text }}"
-           width="{{ img.image.width }}" height="{{ img.image.height }}"
-           {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+      {% if forloop.first %}
+        {% responsive_image img.image img.alt_text sizes="(max-width: 860px) 100vw, 640px" loading="eager" fetchpriority="high" %}
+      {% else %}
+        {% responsive_image img.image img.alt_text sizes="(max-width: 860px) 100vw, 640px" %}
+      {% endif %}
     {% endfor %}
   </div>
 

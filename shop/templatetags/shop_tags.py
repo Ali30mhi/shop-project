@@ -1,4 +1,8 @@
 from django import template
+from django.forms.utils import flatatt
+from django.utils.safestring import mark_safe
+
+from shop.images import responsive_sources
 
 register = template.Library()
 
@@ -32,3 +36,34 @@ def product_card(product):
         "tag": tag,
         "sale": sale and in_stock,
     }
+
+
+@register.simple_tag
+def responsive_image(field_file, alt="", sizes="100vw", css_class="", loading="lazy", fetchpriority=""):
+    if not field_file:
+        return ""
+
+    sources = responsive_sources(field_file)
+    attrs = {"alt": alt or "", "decoding": "async"}
+
+    if sources:
+        attrs["src"] = sources[-1][0]
+        attrs["srcset"] = ", ".join(f"{url} {width}w" for url, width in sources)
+        attrs["sizes"] = sizes
+    else:
+        attrs["src"] = field_file.url
+
+    try:
+        attrs["width"] = str(field_file.width)
+        attrs["height"] = str(field_file.height)
+    except (OSError, ValueError):
+        pass
+
+    if css_class:
+        attrs["class"] = css_class
+    if loading:
+        attrs["loading"] = loading
+    if fetchpriority:
+        attrs["fetchpriority"] = fetchpriority
+
+    return mark_safe(f"<img{flatatt(attrs)}>")

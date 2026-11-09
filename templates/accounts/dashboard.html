@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block title %}Mein Konto | {{ SITE_NAME }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<div class="account">
+  <aside class="account-nav">
+    <p class="account-hello">Hallo{% if user.first_name %} {{ user.first_name }}{% endif %}!</p>
+    <nav aria-label="Kontonavigation">
+      <a href="{% url 'accounts:dashboard' %}" aria-current="page">Bestellungen</a>
+      <a href="{% url 'accounts:profile' %}">Persönliche Daten</a>
+      <a href="{% url 'accounts:password_change' %}">Passwort ändern</a>
+      <a href="{% url 'accounts:delete' %}">Konto löschen</a>
+    </nav>
+    <form method="post" action="{% url 'accounts:logout' %}">
+      {% csrf_token %}
+      <button type="submit" class="btn-link">Abmelden</button>
+    </form>
+  </aside>
+
+  <section>
+    <h1>Meine Bestellungen</h1>
+    {% if orders %}
+      <table class="orders-table">
+        <thead>
+          <tr><th>Nr.</th><th>Datum</th><th>Status</th><th>Summe</th><th><span class="visually-hidden">Aktion</span></th></tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+            <tr>
+              <td>#{{ order.id }}</td>
+              <td>{{ order.created_at|date:"d.m.Y" }}</td>
+              <td><span class="status status-{{ order.status }}">{{ order.get_status_display }}</span></td>
+              <td>{{ order.total|floatformat:2 }} €</td>
+              <td><a href="{% url 'accounts:order_detail' order.id %}">Details</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">Sie haben noch keine Bestellungen.</p>
+      <p><a class="btn-lime" href="{% url 'shop:home' %}#produkte">Jetzt einkaufen</a></p>
+    {% endif %}
+  </section>
+</div>
+{% endblock %}

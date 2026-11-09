@@ -36,6 +36,11 @@
         <a href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a>
       </nav>
       <div class="header-actions">
+        {% if user.is_authenticated %}
+          <a class="account-link" href="{% url 'accounts:dashboard' %}">Mein Konto</a>
+        {% else %}
+          <a class="account-link" href="{% url 'accounts:login' %}">Anmelden</a>
+        {% endif %}
         <a class="cart-link" href="{% url 'shop:cart' %}">
           Warenkorb <span class="cart-count">{{ cart_count|default:"0" }}</span><span class="visually-hidden"> Artikel</span>
         </a>

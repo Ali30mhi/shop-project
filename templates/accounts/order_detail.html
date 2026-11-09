@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Bestellung #{{ order.id }} | {{ SITE_NAME }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<nav class="breadcrumbs" aria-label="Brotkrümelnavigation">
+  <a href="{% url 'accounts:dashboard' %}">Mein Konto</a>
+  <span aria-hidden="true">›</span>
+  <span aria-current="page">Bestellung #{{ order.id }}</span>
+</nav>
+
+<h1>Bestellung #{{ order.id }}</h1>
+<p class="muted">
+  Bestellt am {{ order.created_at|date:"d.m.Y, H:i" }} ·
+  <span class="status status-{{ order.status }}">{{ order.get_status_display }}</span>
+</p>
+
+<div class="order-detail">
+  <table class="orders-table">
+    <thead>
+      <tr><th>Artikel</th><th>Menge</th><th>Einzelpreis</th><th>Summe</th></tr>
+    </thead>
+    <tbody>
+      {% for item in order.items.all %}
+        <tr>
+          <td>{{ item.product_name }}{% if item.variant_name %}<br><span class="muted small">{{ item.variant_name }}</span>{% endif %}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ item.unit_price|floatformat:2 }} €</td>
+          <td>{{ item.line_total|floatformat:2 }} €</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot>
+      <tr><th colspan="3">Gesamt</th><th>{{ order.total|floatformat:2 }} €</th></tr>
+    </tfoot>
+  </table>
+
+  <aside class="cart-summary">
+    {% if order.shipping_address %}
+      <h2 class="h3">Lieferadresse</h2>
+      <p>{{ order.shipping_address|linebreaksbr }}</p>
+    {% endif %}
+    {% if order.invoice_pdf_url %}
+      <a class="btn" href="{{ order.invoice_pdf_url }}" target="_blank" rel="noopener">Rechnung herunterladen (PDF)</a>
+    {% elif order.invoice_url %}
+      <a class="btn" href="{{ order.invoice_url }}" target="_blank" rel="noopener">Rechnung ansehen</a>
+    {% else %}
+      <p class="muted small">Die Rechnung wird nach Zahlungseingang bereitgestellt.</p>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

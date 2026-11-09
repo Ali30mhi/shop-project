@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} | {{ SITE_NAME }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+  <h1>{{ title }}</h1>
+  <p>{{ text }}</p>
+  {% if link_url %}<p><a class="btn" href="{{ link_url }}">{{ link_label }}</a></p>{% endif %}
+</div>
+{% endblock %}

@@ -8,7 +8,7 @@ class UserManager(BaseUserManager):
     def _create_user(self, email, password, **extra_fields):
         if not email:
             raise ValueError("Email is required")
-        email = self.normalize_email(email)
+        email = self.normalize_email(email).lower()
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
@@ -25,6 +25,9 @@ class UserManager(BaseUserManager):
         if not extra_fields["is_staff"] or not extra_fields["is_superuser"]:
             raise ValueError("Superuser must have is_staff=True and is_superuser=True")
         return self._create_user(email, password, **extra_fields)
+
+    def get_by_natural_key(self, username):
+        return self.get(**{f"{self.model.USERNAME_FIELD}__iexact": username})
 
 
 class User(AbstractUser):

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} | {{ SITE_NAME }}{% endblock %}
+{% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}
+
+{% block content %}
+<div class="auth-card">
+  <h1>{{ title }}</h1>
+
+  {% if validlink == False %}
+    <p>Der Link ist ungültig oder abgelaufen. Bitte fordern Sie einen neuen Link an.</p>
+    <p><a class="btn" href="{% url 'accounts:password_reset' %}">Neuen Link anfordern</a></p>
+  {% else %}
+    {% if intro %}<p class="muted">{{ intro }}</p>{% endif %}
+
+    <form method="post" class="form">
+      {% csrf_token %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      {{ form }}
+      <button type="submit" class="btn{% if danger %} btn-danger{% endif %}">{{ submit_label|default:"Speichern" }}</button>
+    </form>
+
+    {% if show_privacy_note %}
+      <p class="small muted">Informationen zur Verarbeitung Ihrer Daten finden Sie in unserer
+        <a href="{% url 'pages:detail' 'datenschutz' %}">Datenschutzerklärung</a>.</p>
+    {% endif %}
+
+    {% if links %}
+      <ul class="auth-links">
+        {% for url, label in links %}<li><a href="{{ url }}">{{ label }}</a></li>{% endfor %}
+      </ul>
+    {% endif %}
+  {% endif %}
+</div>
+{% endblock %}

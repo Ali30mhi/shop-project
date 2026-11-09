@@ -3,21 +3,16 @@
 
   const root = document.documentElement;
 
-  /* ---------- Dark mode ---------- */
   function initTheme() {
     const button = document.querySelector("[data-theme-toggle]");
     if (!button) return;
     const darkQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-    function current() {
-      return root.dataset.theme || (darkQuery.matches ? "dark" : "light");
-    }
+    function current() { return root.dataset.theme || (darkQuery.matches ? "dark" : "light"); }
     function sync() {
       const dark = current() === "dark";
       button.dataset.state = dark ? "dark" : "light";
       button.setAttribute("aria-label", dark ? "Helles Design aktivieren" : "Dunkles Design aktivieren");
     }
-
     button.addEventListener("click", function () {
       const next = current() === "dark" ? "light" : "dark";
       root.dataset.theme = next;
@@ -28,25 +23,51 @@
     sync();
   }
 
-  /* ---------- Mobile menu ---------- */
   function initMenu() {
     const button = document.querySelector("[data-menu-toggle]");
     const nav = document.getElementById("main-nav");
     if (!button || !nav) return;
-
     function setOpen(open) {
       nav.classList.toggle("is-open", open);
       button.setAttribute("aria-expanded", String(open));
     }
-    button.addEventListener("click", function () {
-      setOpen(!nav.classList.contains("is-open"));
-    });
-    nav.addEventListener("click", function (e) {
-      if (e.target.closest("a")) setOpen(false);
+    button.addEventListener("click", function () { setOpen(!nav.classList.contains("is-open")); });
+    nav.addEventListener("click", function (e) { if (e.target.closest("a")) setOpen(false); });
+  }
+
+  function initToggles() {
+    document.querySelectorAll("[data-toggle]").forEach(function (button) {
+      const target = document.getElementById(button.dataset.toggle);
+      if (!target) return;
+      button.addEventListener("click", function () {
+        const open = target.hidden;
+        target.hidden = !open;
+        button.setAttribute("aria-expanded", String(open));
+      });
+      target.addEventListener("click", function (e) {
+        if (e.target.closest("a")) {
+          target.hidden = true;
+          button.setAttribute("aria-expanded", "false");
+        }
+      });
     });
   }
 
-  /* ---------- Cart drawer ---------- */
+  function initQty() {
+    document.querySelectorAll("[data-qty]").forEach(function (box) {
+      const input = box.querySelector("input");
+      if (!input) return;
+      box.addEventListener("click", function (e) {
+        const btn = e.target.closest("[data-qty-step]");
+        if (!btn) return;
+        const min = Number(input.min) || 1;
+        const max = Number(input.max) || 99;
+        const value = (Number(input.value) || min) + Number(btn.dataset.qtyStep);
+        input.value = Math.min(max, Math.max(min, value));
+      });
+    });
+  }
+
   function initDrawer() {
     const drawer = document.getElementById("cart-drawer");
     const overlay = document.querySelector("[data-drawer-overlay]");
@@ -69,58 +90,38 @@
       drawer.classList.remove("is-open");
       overlay.classList.remove("is-open");
       document.body.classList.remove("no-scroll");
-      setTimeout(function () {
-        drawer.hidden = true;
-        overlay.hidden = true;
-      }, 250);
+      setTimeout(function () { drawer.hidden = true; overlay.hidden = true; }, 250);
       if (lastFocus && lastFocus.focus) lastFocus.focus();
     }
 
     document.querySelectorAll("[data-drawer-open]").forEach(function (el) {
-      el.addEventListener("click", function (e) {
-        e.preventDefault();
-        open();
-      });
+      el.addEventListener("click", function (e) { e.preventDefault(); open(); });
     });
-    document.querySelectorAll("[data-drawer-close]").forEach(function (el) {
-      el.addEventListener("click", close);
-    });
+    document.querySelectorAll("[data-drawer-close]").forEach(function (el) { el.addEventListener("click", close); });
     overlay.addEventListener("click", close);
-    document.addEventListener("keydown", function (e) {
-      if (e.key === "Escape") close();
-    });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
     drawer.addEventListener("keydown", function (e) {
       if (e.key !== "Tab") return;
       const focusable = drawer.querySelectorAll("a[href], button:not([disabled]), input:not([disabled])");
       if (!focusable.length) return;
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault();
-        last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault();
-        first.focus();
-      }
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     });
-
     if (document.body.dataset.openCart === "true") open();
   }
 
-  /* ---------- Product gallery ---------- */
   function initGallery() {
     document.querySelectorAll("[data-gallery]").forEach(function (gallery) {
       const track = gallery.querySelector("[data-gallery-track]");
       const thumbs = gallery.querySelectorAll("[data-gallery-thumb]");
       if (!track || !thumbs.length) return;
-
       thumbs.forEach(function (thumb) {
         thumb.addEventListener("click", function () {
-          const index = Number(thumb.dataset.galleryThumb);
-          track.scrollTo({ left: index * track.clientWidth, behavior: "smooth" });
+          track.scrollTo({ left: Number(thumb.dataset.galleryThumb) * track.clientWidth, behavior: "smooth" });
         });
       });
-
       let ticking = false;
       track.addEventListener("scroll", function () {
         if (ticking) return;
@@ -134,15 +135,12 @@
     });
   }
 
-  /* ---------- Sticky buy bar (mobile) ---------- */
   function initBuybar() {
     const bar = document.querySelector("[data-buybar]");
     const mainButton = document.querySelector("[data-buy-button]");
     if (!bar || !mainButton || !("IntersectionObserver" in window)) return;
-
     const mobile = window.matchMedia("(max-width: 760px)");
     let mainVisible = true;
-
     function update() {
       const show = mobile.matches && !mainVisible;
       bar.hidden = !show;
@@ -155,22 +153,20 @@
     if (mobile.addEventListener) mobile.addEventListener("change", update);
   }
 
-  /* ---------- Variant picker ---------- */
   function initVariantPicker() {
     const picker = document.querySelector("[data-variant-picker]");
     const dataEl = document.getElementById("variant-data");
     if (!picker || !dataEl) return;
-
     const variants = JSON.parse(dataEl.textContent);
     if (!variants.length) return;
 
-    const list = document.querySelector("[data-variant-list]");
     const form = picker.closest("form");
+    const list = form.querySelector("[data-variant-list]");
     const submit = form.querySelector("[data-buy-button]");
-    const priceEl = picker.querySelector("[data-price]");
-    const compareEl = picker.querySelector("[data-compare]");
-    const stockNote = picker.querySelector("[data-stock-note]");
-    const colorLabel = picker.querySelector("[data-selected-color]");
+    const priceEl = form.querySelector("[data-price]");
+    const compareEl = form.querySelector("[data-compare]");
+    const stockNote = form.querySelector("[data-stock-note]");
+    const colorLabel = form.querySelector("[data-selected-color]");
     const buybarPrice = document.querySelector("[data-buybar-price]");
     const buybarButton = document.querySelector("[data-buybar-button]");
     const money = new Intl.NumberFormat("de-DE", { style: "currency", currency: "EUR" });
@@ -190,24 +186,37 @@
       });
     }
     function setStock(text, state) {
+      if (!stockNote) return;
       stockNote.textContent = text;
-      stockNote.className = "stock-note " + state;
+      if (stockNote.dataset.style === "ms") {
+        const map = { "is-ok": "ok", "is-low": "low", "is-out": "out" };
+        stockNote.className = "ms-stock ms-stock--" + map[state];
+      } else {
+        stockNote.className = "stock-note " + state;
+      }
     }
     function setDisabled(disabled) {
       submit.disabled = disabled;
       if (buybarButton) buybarButton.disabled = disabled;
     }
+    function mark(el, active, available) {
+      if (el.tagName === "INPUT") {
+        el.checked = active;
+        el.disabled = !available && !active;
+      } else {
+        el.setAttribute("aria-pressed", String(active));
+        el.classList.toggle("is-unavailable", !available);
+      }
+    }
 
     function render() {
-      picker.querySelectorAll("[data-color]").forEach(function (btn) {
-        btn.setAttribute("aria-pressed", String(btn.dataset.color === color));
-        const available = variants.some(function (v) { return v.color === btn.dataset.color && v.inStock; });
-        btn.classList.toggle("is-unavailable", !available);
+      picker.querySelectorAll("[data-color]").forEach(function (el) {
+        const available = variants.some(function (v) { return v.color === el.dataset.color && v.inStock; });
+        mark(el, el.dataset.color === color, available);
       });
-      picker.querySelectorAll("[data-size]").forEach(function (btn) {
-        btn.setAttribute("aria-pressed", String(btn.dataset.size === size));
-        const v = match(color, btn.dataset.size);
-        btn.classList.toggle("is-unavailable", !v || !v.inStock);
+      picker.querySelectorAll("[data-size]").forEach(function (el) {
+        const v = match(color, el.dataset.size);
+        mark(el, el.dataset.size === size, !!v && v.inStock);
       });
       if (colorLabel) colorLabel.textContent = color;
 
@@ -217,29 +226,26 @@
           input.checked = !!variant && String(variant.id) === input.value;
         });
       }
-
       if (variant) {
         const price = money.format(parseFloat(variant.price));
-        priceEl.textContent = price;
+        if (priceEl) priceEl.textContent = price;
         if (buybarPrice) buybarPrice.textContent = price;
-        compareEl.textContent = variant.compare ? money.format(parseFloat(variant.compare)) : "";
+        if (compareEl) compareEl.textContent = variant.compare ? money.format(parseFloat(variant.compare)) : "";
         if (!variant.inStock) setStock("Derzeit ausverkauft", "is-out");
         else if (variant.lowStock) setStock("Nur noch " + variant.lowStock + " Stück verfügbar", "is-low");
         else setStock("Auf Lager", "is-ok");
         setDisabled(!variant.inStock);
       } else {
-        priceEl.textContent = "";
-        compareEl.textContent = "";
+        if (priceEl) priceEl.textContent = "";
+        if (compareEl) compareEl.textContent = "";
         setStock("Diese Kombination ist nicht verfügbar", "is-out");
         setDisabled(true);
       }
     }
 
-    picker.addEventListener("click", function (e) {
-      const btn = e.target.closest("[data-color], [data-size]");
-      if (!btn) return;
-      if (btn.dataset.color !== undefined) {
-        color = btn.dataset.color;
+    function choose(el) {
+      if (el.dataset.color !== undefined) {
+        color = el.dataset.color;
         const current = match(color, size);
         if (hasSize && (!current || !current.inStock)) {
           const alt = variants.find(function (v) { return v.color === color && v.inStock; })
@@ -247,15 +253,25 @@
           if (alt) size = alt.size;
         }
       }
-      if (btn.dataset.size !== undefined) size = btn.dataset.size;
+      if (el.dataset.size !== undefined) size = el.dataset.size;
       render();
-    });
+    }
 
+    picker.addEventListener("click", function (e) {
+      const btn = e.target.closest("button[data-color], button[data-size]");
+      if (btn) choose(btn);
+    });
+    picker.addEventListener("change", function (e) {
+      const input = e.target.closest("input[data-color], input[data-size]");
+      if (input) choose(input);
+    });
     render();
   }
 
   initTheme();
   initMenu();
+  initToggles();
+  initQty();
   initDrawer();
   initGallery();
   initBuybar();

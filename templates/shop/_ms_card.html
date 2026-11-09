@@ -1,0 +1,23 @@
+{% load shop_tags %}{% product_card product as card %}
+<article class="ms-card{% if card.badge == 'soldout' %} is-soldout{% endif %}">
+  <div class="ms-card__media">
+    {% with image=product.main_image %}
+      {% if image %}{% responsive_image image.image image.alt_text sizes="(max-width: 768px) 50vw, 290px" %}{% endif %}
+    {% endwith %}
+    {% if card.badge %}<span class="ms-badge ms-badge--{{ card.badge }} ms-card__badge">{{ card.badge_label }}</span>{% endif %}
+  </div>
+  <h3 class="ms-card__title"><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h3>
+  {% if card.price %}
+    <span class="ms-price">
+      <span>{% if card.multiple %}ab {% endif %}{{ card.price|floatformat:2 }} €</span>
+      {% if card.compare %}<s><span class="ms-sr">Statt </span>{{ card.compare|floatformat:2 }} €</s>{% endif %}
+    </span>
+  {% endif %}
+  {% if card.colors %}
+    <div class="ms-swatches-mini" aria-label="{{ card.colors|length }} Farben">
+      {% for c in card.colors %}<i style="background: {{ c.hex }}" title="{{ c.name }}"></i>{% endfor %}
+      {% if card.more_colors %}+{{ card.more_colors }}{% endif %}
+    </div>
+  {% endif %}
+  {% if card.low_stock %}<span class="ms-stock ms-stock--low">Nur noch {{ card.low_stock }} Stück</span>{% endif %}
+</article>

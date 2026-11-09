@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends BASE_TEMPLATE|default:"base.html" %}
 
 {% block title %}Bestellung #{{ order.id }} | {{ SITE_NAME }}{% endblock %}
 {% block robots %}<meta name="robots" content="noindex, nofollow">{% endblock %}

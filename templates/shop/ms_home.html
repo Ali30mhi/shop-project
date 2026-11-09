@@ -1,0 +1,59 @@
+{% extends "base_ms.html" %}
+{% load shop_tags %}
+
+{% block title %}{{ SITE_NAME }} – Online-Shop{% endblock %}
+{% block structured_data %}<script type="application/ld+json">{{ website_jsonld }}</script>{% endblock %}
+
+{% block content %}
+<section class="ms-hero{% if store.hero_image %} has-image focus-{{ store.hero_image_position }}{% endif %}">
+  {% if store.hero_image %}
+    <div class="ms-hero__img">
+      {% responsive_image store.hero_image store.hero_image_alt sizes="(max-width: 768px) 100vw, 600px" loading="eager" fetchpriority="high" %}
+    </div>
+  {% endif %}
+  <div class="ms-hero__txt">
+    {% if store.hero_eyebrow %}<div class="ms-overline">{{ store.hero_eyebrow }}</div>{% endif %}
+    <h1>{{ store.hero_title }}</h1>
+    {% if store.hero_text %}<p>{{ store.hero_text }}</p>{% endif %}
+    <div class="ms-row">
+      <a class="ms-btn ms-btn--primary" href="#produkte">{{ store.hero_button }}</a>
+      <a class="ms-btn ms-btn--outline" href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a>
+    </div>
+  </div>
+</section>
+
+<div class="ms-sec">
+  <ul class="ms-trust">
+    <li><svg class="ms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>{{ store.benefit_1_title }}</li>
+    <li><svg class="ms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg>{{ store.benefit_2_title }}</li>
+    <li><svg class="ms-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>{{ store.benefit_3_title }}</li>
+  </ul>
+</div>
+
+<section id="produkte" class="ms-sec" aria-labelledby="produkte-titel">
+  <div class="ms-sec-h">
+    <div>
+      <h2 id="produkte-titel">{{ store.products_title }}</h2>
+      {% if store.products_subtitle %}<p>{{ store.products_subtitle }}</p>{% endif %}
+    </div>
+  </div>
+  <div class="ms-grid">
+    {% for product in products %}
+      {% include "shop/_ms_card.html" with product=product %}
+    {% empty %}
+      <p>Derzeit sind keine Produkte verfügbar.</p>
+    {% endfor %}
+  </div>
+  <p class="price-footnote">Alle Preise {{ SHOP_TAX_NOTE }}. <a href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a></p>
+</section>
+
+{% max_discount as sale_pct %}
+{% if sale_pct %}
+  <div class="ms-promo">
+    <span class="ms-badge ms-badge--sale">Sale</span>
+    <h2>Bis −{{ sale_pct }} %</h2>
+    <p>Nur solange der Vorrat reicht.</p>
+    <a class="ms-btn" href="#produkte">Angebote ansehen</a>
+  </div>
+{% endif %}
+{% endblock %}

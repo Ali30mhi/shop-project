@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends BASE_TEMPLATE|default:"base.html" %}
 {% load shop_tags %}
 
 {% block title %}{{ SITE_NAME }} – Online-Shop{% endblock %}

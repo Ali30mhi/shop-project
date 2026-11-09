@@ -1,3 +1,4 @@
+import os
 import re
 import shutil
 from pathlib import Path
@@ -8,14 +9,18 @@ from django.test import Client
 from pages.models import Page
 from shop.models import Product, ProductVariant
 
-PREFIX = "/shop-vorschau"
+PREFIX = os.environ.get("PREVIEW_PREFIX", "/shop-vorschau")
+OUT = Path(settings.BASE_DIR).parent / os.environ.get("PREVIEW_DIR", "shop-preview")
+PALETTE = os.environ.get("PREVIEW_PALETTE", "")
+LABEL = os.environ.get("PREVIEW_LABEL", "")
 PREVIEW_URL = "https://ali30mhi.github.io" + PREFIX
-OUT = Path(settings.BASE_DIR).parent / "shop-preview"
+
+palette_css = Path(settings.BASE_DIR, PALETTE).read_text() if PALETTE else ""
 
 BANNER = (
     '<div style="background:#fff3cd;color:#5c4400;text-align:center;padding:8px 16px;'
-    'font:600 13px/1.4 system-ui,sans-serif;">Vorschau – Warenkorb, Login und Bestellung '
-    'sind in dieser Demo deaktiviert.</div>'
+    'font:600 13px/1.4 system-ui,sans-serif;">Vorschau' + (f" – {LABEL}" if LABEL else "") +
+    ' – Warenkorb, Login und Bestellung sind in dieser Demo deaktiviert.</div>'
 )
 BLOCK_POST = (
     "<script>document.addEventListener('submit',function(e){"
@@ -34,6 +39,7 @@ for item in OUT.iterdir():
 
 settings.SITE_URL = PREVIEW_URL
 settings.SEO_NOINDEX = True
+settings.SITE_THEME = os.environ.get("PREVIEW_THEME", getattr(settings, "SITE_THEME", "classic"))
 client = Client(HTTP_HOST="localhost")
 
 for sku in ("SAD-COG", "VASE-SAL"):
@@ -59,6 +65,8 @@ def prefix_urls(html):
 
 def write_page(html, target):
     html = prefix_urls(html)
+    if palette_css:
+        html = html.replace("</head>", "<style>" + palette_css + "</style></head>", 1)
     html = re.sub(r"<body[^>]*>", lambda m: m.group(0) + BANNER, html, count=1)
     html = html.replace("</body>", BLOCK_POST + "</body>", 1)
     path = OUT / target

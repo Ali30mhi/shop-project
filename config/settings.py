@@ -101,3 +101,5 @@ vars().update(env.email_url("EMAIL_URL", default="consolemail://"))
 DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="shop@localhost")
 
 SHOP_TOTAL_NOTE = env("SHOP_TOTAL_NOTE", default="Alle Beträge inkl. USt.")
+
+SITE_THEME = env("SITE_THEME", default="classic")

@@ -13,10 +13,17 @@ from .seo import absolute_url, breadcrumb_jsonld, product_jsonld, website_jsonld
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+def _tpl(name):
+    if getattr(settings, "SITE_THEME", "classic") == "ms":
+        folder, file = name.rsplit("/", 1)
+        return f"{folder}/ms_{file}"
+    return name
+
+
 @require_GET
 def home(request):
     products = Product.objects.filter(is_active=True).prefetch_related("images", "variants")
-    return render(request, "shop/home.html", {
+    return render(request, _tpl("shop/home.html"), {
         "products": products,
         "website_jsonld": website_jsonld(),
     })
@@ -29,7 +36,7 @@ def product_detail(request, slug):
     images = list(product.images.all())
     canonical_url = absolute_url(product.get_absolute_url())
 
-    return render(request, "shop/product_detail.html", {
+    return render(request, _tpl("shop/product_detail.html"), {
         "product": product,
         "variants": variants,
         "images": images,

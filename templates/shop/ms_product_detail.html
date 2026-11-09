@@ -1,0 +1,172 @@
+{% extends "base_ms.html" %}
+{% load shop_tags %}
+
+{% block title %}{{ product.seo_title }} | {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}{{ product.seo_description }}{% endblock %}
+{% block canonical %}{{ canonical_url }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ product.seo_title }}{% endblock %}
+{% block og_description %}{{ product.seo_description }}{% endblock %}
+{% block og_image %}{% if og_image %}<meta property="og:image" content="{{ og_image }}">{% endif %}{% endblock %}
+{% block structured_data %}
+<script type="application/ld+json">{{ product_jsonld }}</script>
+<script type="application/ld+json">{{ breadcrumb_jsonld }}</script>
+{% endblock %}
+
+{% block content %}
+{% product_card product as card %}
+<nav class="ms-crumbs" aria-label="Brotkrümelnavigation">
+  <a href="{% url 'shop:home' %}">Startseite</a> /
+  <a href="{% url 'shop:home' %}#produkte">Produkte</a> /
+  <span aria-current="page">{{ product.name }}</span>
+</nav>
+
+<div class="ms-pdp-layout">
+  <div class="ms-gal" data-gallery>
+    <div class="ms-gal__track" data-gallery-track>
+      {% for img in images %}
+        <figure class="ms-gal__slide">
+          {% if forloop.first %}
+            {% responsive_image img.image img.alt_text sizes="(max-width: 860px) 100vw, 640px" loading="eager" fetchpriority="high" %}
+          {% else %}
+            {% responsive_image img.image img.alt_text sizes="(max-width: 860px) 100vw, 640px" %}
+          {% endif %}
+        </figure>
+      {% empty %}
+        <div class="ms-gal__slide"></div>
+      {% endfor %}
+    </div>
+    {% if card.badge %}
+      <span class="ms-badge ms-badge--{{ card.badge }}">{{ card.badge_label }}{% if card.badge == 'sale' and card.discount %} −{{ card.discount }} %{% endif %}</span>
+    {% endif %}
+    {% if images|length > 1 %}
+      <div class="ms-thumbs">
+        {% for img in images %}
+          <button type="button" class="ms-thumb{% if forloop.first %} is-active{% endif %}" data-gallery-thumb="{{ forloop.counter0 }}" aria-label="Bild {{ forloop.counter }} anzeigen">
+            {% responsive_image img.image "" sizes="56px" %}
+          </button>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="ms-pdp">
+    <div>
+      <h1>{{ product.name }}</h1>
+      {% if product.short_description %}<p class="ms-pdp__lead">{{ product.short_description }}</p>{% endif %}
+    </div>
+
+    {% if variants %}
+      {% variant_options variants as opts %}
+      <form id="buy-form" class="ms-pdp__form" method="post" action="{% url 'shop:cart_add' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+        <div>
+          <span class="ms-price ms-price--lg">
+            <span data-price>{{ card.price|floatformat:2 }} €</span>
+            <s data-compare>{% if card.compare %}{{ card.compare|floatformat:2 }} €{% endif %}</s>
+          </span>
+          <span class="ms-price__note">{{ SHOP_TAX_NOTE }}</span>
+        </div>
+        <span class="ms-stock" data-stock-note data-style="ms" aria-live="polite"></span>
+
+        {% if opts.enabled %}
+          <div class="ms-options" data-variant-picker hidden>
+            {% if opts.colors %}
+              <fieldset class="ms-option">
+                <legend>Farbe: <span data-selected-color></span></legend>
+                <div class="ms-swatches">
+                  {% for c in opts.colors %}
+                    <label class="ms-swatch" title="{{ c.name }}">
+                      <input type="radio" name="opt_color" value="{{ c.name }}" data-color="{{ c.name }}">
+                      <i style="background: {{ c.hex }}"></i><span class="ms-sr">{{ c.name }}</span>
+                    </label>
+                  {% endfor %}
+                </div>
+              </fieldset>
+            {% endif %}
+            {% if opts.sizes %}
+              <fieldset class="ms-option">
+                <legend>Größe</legend>
+                <div class="ms-sizes">
+                  {% for s in opts.sizes %}
+                    <label class="ms-size"><input type="radio" name="opt_size" value="{{ s }}" data-size="{{ s }}">{{ s }}</label>
+                  {% endfor %}
+                </div>
+              </fieldset>
+            {% endif %}
+          </div>
+          {{ opts.data|json_script:"variant-data" }}
+        {% endif %}
+
+        <fieldset class="ms-option variant-list" data-variant-list>
+          <legend>Variante wählen</legend>
+          {% for v in variants %}
+            <label class="variant{% if not v.in_stock %} is-disabled{% endif %}">
+              <input type="radio" name="variant" value="{{ v.id }}" {% if not v.in_stock %}disabled{% elif forloop.first %}checked{% endif %}>
+              <span class="variant-name">{{ v.name }}</span>
+              {% if not v.in_stock %}<span class="badge">Ausverkauft</span>{% endif %}
+              <span class="variant-price">{{ v.price|floatformat:2 }} €</span>
+            </label>
+          {% endfor %}
+        </fieldset>
+
+        <div class="ms-buy">
+          <div class="ms-qty" data-qty>
+            <button type="button" data-qty-step="-1" aria-label="Menge verringern">−</button>
+            <input type="number" name="quantity" value="1" min="1" max="99" inputmode="numeric" aria-label="Menge">
+            <button type="button" data-qty-step="1" aria-label="Menge erhöhen">+</button>
+          </div>
+          <button type="submit" class="ms-btn ms-btn--primary" data-buy-button>In den Warenkorb</button>
+        </div>
+      </form>
+
+      <ul class="ms-trust">
+        {% if store.shipping_cost is not None %}
+          <li><svg class="ms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h11v10H3zM14 10h4l3 3v3h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>{% if store.free_shipping_threshold %}Gratis Versand ab {{ store.free_shipping_threshold|floatformat:0 }} €{% else %}Versand {{ store.shipping_cost|floatformat:2 }} €{% endif %}</li>
+        {% endif %}
+        {% if store.delivery_time %}<li><svg class="ms-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3 2"/></svg>{{ store.delivery_time }}</li>{% endif %}
+        {% if store.returns_note %}<li><svg class="ms-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.3-5.6"/><path d="M4 4v4h4"/></svg>{{ store.returns_note }}</li>{% endif %}
+        <li><svg class="ms-icon" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="2"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>Sicher bezahlen</li>
+      </ul>
+    {% else %}
+      <p>Dieses Produkt ist derzeit nicht verfügbar.</p>
+    {% endif %}
+
+    <div class="ms-acc">
+      {% if product.description %}
+        <details open><summary>Beschreibung</summary><div class="ms-acc__body">{{ product.description|linebreaks }}</div></details>
+      {% endif %}
+      {% if product.size_guide %}
+        <details><summary>Größe &amp; Maße</summary><div class="ms-acc__body">{{ product.size_guide|linebreaks }}</div></details>
+      {% endif %}
+      <details>
+        <summary>Versand &amp; Rückgabe</summary>
+        <div class="ms-acc__body">
+          {% if store.delivery_time %}<p>Lieferzeit innerhalb Österreichs: {{ store.delivery_time }}.</p>{% endif %}
+          {% if store.shipping_cost is not None %}<p>Versandkosten: {% if store.shipping_cost %}{{ store.shipping_cost|floatformat:2 }} €{% else %}kostenlos{% endif %}{% if store.free_shipping_threshold %}, ab {{ store.free_shipping_threshold|floatformat:2 }} € kostenlos{% endif %}.</p>{% endif %}
+          <p>{% if store.returns_note %}{{ store.returns_note }}. {% endif %}Details: <a href="{% url 'pages:detail' 'widerrufsrecht' %}">Widerrufsrecht</a> · <a href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a></p>
+        </div>
+      </details>
+    </div>
+  </div>
+</div>
+
+{% related_products product as related %}
+{% if related %}
+  <section class="ms-sec">
+    <div class="ms-sec-h"><h2>Passt dazu</h2></div>
+    <div class="ms-grid">
+      {% for p in related %}{% include "shop/_ms_card.html" with product=p %}{% endfor %}
+    </div>
+  </section>
+{% endif %}
+
+{% if variants %}
+  <div class="mobile-buybar" data-buybar hidden>
+    <div><strong data-buybar-price>{{ card.price|floatformat:2 }} €</strong><span class="small muted">{{ SHOP_TAX_NOTE }}</span></div>
+    <button type="submit" form="buy-form" class="btn" data-buybar-button>In den Warenkorb</button>
+  </div>
+{% endif %}
+{% endblock %}

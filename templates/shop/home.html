@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% load shop_tags %}
 
 {% block title %}{{ SITE_NAME }} – Online-Shop{% endblock %}
 
@@ -7,28 +8,70 @@
 {% endblock %}
 
 {% block content %}
-<h1>{{ SITE_NAME }}</h1>
-{% if SITE_DESCRIPTION %}<p class="lead">{{ SITE_DESCRIPTION }}</p>{% endif %}
+<section class="hero">
+  {% if store.hero_image %}
+    <img class="hero-image" src="{{ store.hero_image.url }}" alt="{{ store.hero_image_alt }}"
+         width="{{ store.hero_image.width }}" height="{{ store.hero_image.height }}" fetchpriority="high">
+  {% endif %}
+  <div class="hero-content">
+    {% if store.hero_eyebrow %}<span class="eyebrow">{{ store.hero_eyebrow }}</span>{% endif %}
+    <h1>{{ store.hero_title }}</h1>
+    {% if store.hero_text %}<p>{{ store.hero_text }}</p>{% endif %}
+    <a class="btn-lime" href="#produkte">{{ store.hero_button }}</a>
+  </div>
+</section>
 
-<section class="product-grid" aria-label="Produkte">
-  {% for product in products %}
-    <article class="product-card">
-      <a href="{{ product.get_absolute_url }}">
-        {% with image=product.main_image %}
-          {% if image %}
-            <img src="{{ image.image.url }}" alt="{{ image.alt_text }}"
-                 width="{{ image.image.width }}" height="{{ image.image.height }}"
-                 {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+<section class="benefits" aria-label="Vorteile">
+  <div class="benefit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+    <div>{{ store.benefit_1_title }}<span>{{ store.benefit_1_text }}</span></div>
+  </div>
+  <div class="benefit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+    <div>{{ store.benefit_2_title }}<span>{{ store.benefit_2_text }}</span></div>
+  </div>
+  <div class="benefit">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <div>{{ store.benefit_3_title }}<span>{{ store.benefit_3_text }}</span></div>
+  </div>
+</section>
+
+<section id="produkte" aria-labelledby="produkte-titel">
+  <div class="section-head">
+    <div>
+      <h2 id="produkte-titel">{{ store.products_title }}</h2>
+      {% if store.products_subtitle %}<p>{{ store.products_subtitle }}</p>{% endif %}
+    </div>
+  </div>
+
+  <div class="products">
+    {% for product in products %}
+      {% product_card product as card %}
+      <article class="product-card">
+        <a class="product-image" href="{{ product.get_absolute_url }}" tabindex="-1" aria-hidden="true">
+          {% if card.tag %}<span class="tag{% if card.sale %} tag-sale{% endif %}">{{ card.tag }}</span>{% endif %}
+          {% with image=product.main_image %}
+            {% if image %}
+              <img src="{{ image.image.url }}" alt="{{ image.alt_text }}"
+                   width="{{ image.image.width }}" height="{{ image.image.height }}"
+                   {% if forloop.counter > 4 %}loading="lazy"{% endif %}>
+            {% endif %}
+          {% endwith %}
+        </a>
+        <div class="product-info">
+          <h3><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></h3>
+          {% if card.price %}
+            <p class="price">
+              {% if card.multiple %}ab {% endif %}{{ card.price|floatformat:2 }} €
+              {% if card.compare %}<span class="old-price">{{ card.compare|floatformat:2 }} €</span>{% endif %}
+            </p>
           {% endif %}
-        {% endwith %}
-        <h2>{{ product.name }}</h2>
-      </a>
-      {% if product.min_price %}
-        <p class="price">ab {{ product.min_price|floatformat:2 }} €</p>
-      {% endif %}
-    </article>
-  {% empty %}
-    <p>Derzeit sind keine Produkte verfügbar.</p>
-  {% endfor %}
+          <a class="btn-outline" href="{{ product.get_absolute_url }}">Ansehen</a>
+        </div>
+      </article>
+    {% empty %}
+      <p>Derzeit sind keine Produkte verfügbar.</p>
+    {% endfor %}
+  </div>
 </section>
 {% endblock %}

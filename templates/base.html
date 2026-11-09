@@ -23,13 +23,23 @@
 <body>
   <a class="skip-link" href="#main">Zum Inhalt springen</a>
 
+  {% if store.announcement %}
+    <div class="announcement">{{ store.announcement }}</div>
+  {% endif %}
+
   <header class="site-header">
     <div class="container header-inner">
-      <a class="logo" href="{% url 'shop:home' %}">{{ SITE_NAME }}</a>
-      <nav aria-label="Hauptnavigation">
-        <a href="{% url 'shop:home' %}">Shop</a>
-        <a class="cart-link" href="{% url 'shop:cart' %}">Warenkorb{% if cart_count %} ({{ cart_count }}){% endif %}</a>
+      <a class="logo" href="{% url 'shop:home' %}">{{ SITE_NAME }}<span>.</span></a>
+      <nav class="main-nav" aria-label="Hauptnavigation">
+        <a href="{% url 'shop:home' %}">Startseite</a>
+        <a href="{% url 'shop:home' %}#produkte">Produkte</a>
+        <a href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a>
       </nav>
+      <div class="header-actions">
+        <a class="cart-link" href="{% url 'shop:cart' %}">
+          Warenkorb <span class="cart-count">{{ cart_count|default:"0" }}</span><span class="visually-hidden"> Artikel</span>
+        </a>
+      </div>
     </div>
   </header>
 
@@ -46,7 +56,7 @@
 
   <footer class="site-footer">
     <div class="container footer-inner">
-      <p>&copy; {% now "Y" %} {{ SITE_NAME }}</p>
+      <p>&copy; {% now "Y" %} {{ SITE_NAME }} – Alle Rechte vorbehalten.</p>
       {% if footer_pages %}
         <nav class="footer-nav" aria-label="Rechtliches">
           {% for p in footer_pages %}

@@ -15,7 +15,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @require_GET
 def home(request):
-    products = Product.objects.filter(is_active=True).prefetch_related("images")
+    products = Product.objects.filter(is_active=True).prefetch_related("images", "variants")
     return render(request, "shop/home.html", {
         "products": products,
         "website_jsonld": website_jsonld(),

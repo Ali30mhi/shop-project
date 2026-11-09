@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.seo_title }} | {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}{{ product.seo_description }}{% endblock %}
+{% block canonical %}{{ canonical_url }}{% endblock %}
+{% block og_type %}product{% endblock %}
+{% block og_title %}{{ product.seo_title }}{% endblock %}
+{% block og_description %}{{ product.seo_description }}{% endblock %}
+{% block og_image %}{% if og_image %}<meta property="og:image" content="{{ og_image }}">{% endif %}{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">{{ product_jsonld }}</script>
+<script type="application/ld+json">{{ breadcrumb_jsonld }}</script>
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumbs" aria-label="Brotkrümelnavigation">
+  <a href="{% url 'shop:home' %}">Startseite</a>
+  <span aria-hidden="true">›</span>
+  <span aria-current="page">{{ product.name }}</span>
+</nav>
+
+<div class="product">
+  <div class="product-gallery">
+    {% for img in images %}
+      <img src="{{ img.image.url }}" alt="{{ img.alt_text }}"
+           width="{{ img.image.width }}" height="{{ img.image.height }}"
+           {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+    {% endfor %}
+  </div>
+
+  <div class="product-info">
+    <h1>{{ product.name }}</h1>
+    {% if product.short_description %}<p class="lead">{{ product.short_description }}</p>{% endif %}
+
+    {% if variants %}
+      <form class="buy-box" method="post">
+        {% csrf_token %}
+        <fieldset>
+          <legend>Variante wählen</legend>
+          {% for v in variants %}
+            <label class="variant{% if not v.in_stock %} is-disabled{% endif %}">
+              <input type="radio" name="variant" value="{{ v.id }}"
+                     {% if not v.in_stock %}disabled{% elif forloop.first %}checked{% endif %}>
+              <span class="variant-name">{{ v.name }}</span>
+              {% if not v.in_stock %}<span class="badge">Ausverkauft</span>{% endif %}
+              <span class="variant-price">
+                {% if v.compare_at_price %}<s>{{ v.compare_at_price|floatformat:2 }} €</s>{% endif %}
+                {{ v.price|floatformat:2 }} €
+              </span>
+            </label>
+          {% endfor %}
+        </fieldset>
+        <p class="tax-note">{{ SHOP_TAX_NOTE }}</p>
+        <button type="submit" class="btn" disabled>In den Warenkorb</button>
+      </form>
+    {% else %}
+      <p>Dieses Produkt ist derzeit nicht verfügbar.</p>
+    {% endif %}
+
+    {% if product.description %}
+      <section class="description">
+        <h2>Produktbeschreibung</h2>
+        {{ product.description|linebreaks }}
+      </section>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

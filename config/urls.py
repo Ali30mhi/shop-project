@@ -1,10 +1,21 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
+
+from shop.sitemaps import ProductSitemap, StaticSitemap
+from shop.views import robots_txt
+
+sitemaps = {
+    "static": StaticSitemap,
+    "products": ProductSitemap,
+}
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("sitemap.xml", sitemap, {"sitemaps": sitemaps}, name="django.contrib.sitemaps.views.sitemap"),
+    path("robots.txt", robots_txt, name="robots_txt"),
     path("", include("shop.urls")),
 ]
 

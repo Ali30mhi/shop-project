@@ -10,11 +10,16 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS", default=["localhost", "127.0.0.1"])
 CSRF_TRUSTED_ORIGINS = env.list("CSRF_TRUSTED_ORIGINS", default=[])
+
 SITE_URL = env("SITE_URL", default="http://localhost:8000")
+SITE_NAME = env("SITE_NAME", default="Shop")
+SITE_DESCRIPTION = env("SITE_DESCRIPTION", default="")
+SEO_NOINDEX = env.bool("SEO_NOINDEX", default=False)
 
 STRIPE_SECRET_KEY = env("STRIPE_SECRET_KEY", default="")
 STRIPE_WEBHOOK_SECRET = env("STRIPE_WEBHOOK_SECRET", default="")
 SHOP_CURRENCY = env("SHOP_CURRENCY", default="eur")
+SHOP_TAX_NOTE = env("SHOP_TAX_NOTE", default="inkl. MwSt., zzgl. Versandkosten")
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -23,6 +28,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sitemaps",
     "accounts",
     "shop",
 ]
@@ -51,6 +57,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "config.context_processors.site",
             ],
         },
     },
@@ -69,12 +76,13 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
-LANGUAGE_CODE = "en-us"
-TIME_ZONE = "UTC"
+LANGUAGE_CODE = "de"
+TIME_ZONE = "Europe/Berlin"
 USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"

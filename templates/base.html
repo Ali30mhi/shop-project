@@ -1,0 +1,47 @@
+{% load static %}<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}{{ SITE_DESCRIPTION }}{% endblock %}">
+  <link rel="canonical" href="{% block canonical %}{{ SITE_URL }}{{ request.path }}{% endblock %}">
+  {% if SEO_NOINDEX %}<meta name="robots" content="noindex, nofollow">{% endif %}
+
+  <meta property="og:site_name" content="{{ SITE_NAME }}">
+  <meta property="og:locale" content="de_DE">
+  <meta property="og:type" content="{% block og_type %}website{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}{{ SITE_NAME }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ SITE_DESCRIPTION }}{% endblock %}">
+  <meta property="og:url" content="{{ SITE_URL }}{{ request.path }}">
+  {% block og_image %}{% endblock %}
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  {% block structured_data %}{% endblock %}
+</head>
+<body>
+  <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="logo" href="{% url 'shop:home' %}">{{ SITE_NAME }}</a>
+      <nav aria-label="Hauptnavigation">
+        <a href="{% url 'shop:home' %}">Shop</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main" class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; {% now "Y" %} {{ SITE_NAME }}</p>
+    </div>
+  </footer>
+
+  {% block scripts %}{% endblock %}
+</body>
+</html>

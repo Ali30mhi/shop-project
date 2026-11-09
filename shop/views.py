@@ -2,14 +2,59 @@ import stripe
 from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_POST
+from django.views.decorators.http import require_GET, require_POST
 
-from .models import Order
+from .models import Order, Product
+from .seo import absolute_url, breadcrumb_jsonld, product_jsonld, website_jsonld
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+@require_GET
+def home(request):
+    products = Product.objects.filter(is_active=True).prefetch_related("images")
+    return render(request, "shop/home.html", {
+        "products": products,
+        "website_jsonld": website_jsonld(),
+    })
+
+
+@require_GET
+def product_detail(request, slug):
+    product = get_object_or_404(Product, slug=slug, is_active=True)
+    variants = list(product.active_variants)
+    images = list(product.images.all())
+    canonical_url = absolute_url(product.get_absolute_url())
+
+    return render(request, "shop/product_detail.html", {
+        "product": product,
+        "variants": variants,
+        "images": images,
+        "canonical_url": canonical_url,
+        "og_image": absolute_url(images[0].image.url) if images else "",
+        "product_jsonld": product_jsonld(product, variants, images),
+        "breadcrumb_jsonld": breadcrumb_jsonld([
+            ("Startseite", absolute_url("/")),
+            (product.name, canonical_url),
+        ]),
+    })
+
+
+@require_GET
+def robots_txt(request):
+    lines = [
+        "User-agent: *",
+        "Disallow: /admin/",
+        "Disallow: /warenkorb/",
+        "Disallow: /kasse/",
+        "Disallow: /konto/",
+        "",
+        f"Sitemap: {absolute_url('/sitemap.xml')}",
+    ]
+    return HttpResponse("\n".join(lines) + "\n", content_type="text/plain")
 
 
 @require_POST
@@ -22,7 +67,7 @@ def start_checkout(request, order_id):
             {
                 "price_data": {
                     "currency": order.currency,
-                    "product_data": {"name": item.product_name},
+                    "product_data": {"name": f"{item.product_name} ({item.variant_name})"},
                     "unit_amount": int(item.unit_price * 100),
                 },
                 "quantity": item.quantity,
@@ -32,7 +77,7 @@ def start_checkout(request, order_id):
         invoice_creation={"enabled": True},
         metadata={"order_id": str(order.id)},
         success_url=f"{settings.SITE_URL}/order/{order.id}/thanks/",
-        cancel_url=f"{settings.SITE_URL}/cart/",
+        cancel_url=f"{settings.SITE_URL}/warenkorb/",
     )
     order.stripe_session_id = session.id
     order.save(update_fields=["stripe_session_id"])

@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{{ SITE_NAME }} – Online-Shop{% endblock %}
+
+{% block structured_data %}
+<script type="application/ld+json">{{ website_jsonld }}</script>
+{% endblock %}
+
+{% block content %}
+<h1>{{ SITE_NAME }}</h1>
+{% if SITE_DESCRIPTION %}<p class="lead">{{ SITE_DESCRIPTION }}</p>{% endif %}
+
+<section class="product-grid" aria-label="Produkte">
+  {% for product in products %}
+    <article class="product-card">
+      <a href="{{ product.get_absolute_url }}">
+        {% with image=product.main_image %}
+          {% if image %}
+            <img src="{{ image.image.url }}" alt="{{ image.alt_text }}"
+                 width="{{ image.image.width }}" height="{{ image.image.height }}"
+                 {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+          {% endif %}
+        {% endwith %}
+        <h2>{{ product.name }}</h2>
+      </a>
+      {% if product.min_price %}
+        <p class="price">ab {{ product.min_price|floatformat:2 }} €</p>
+      {% endif %}
+    </article>
+  {% empty %}
+    <p>Derzeit sind keine Produkte verfügbar.</p>
+  {% endfor %}
+</section>
+{% endblock %}

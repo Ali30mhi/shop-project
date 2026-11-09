@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_GET, require_POST
 
 from .cart import Cart
@@ -22,6 +23,16 @@ def _get_variant(variant_id):
         is_active=True,
         product__is_active=True,
     )
+
+
+def _back(request):
+    target = request.POST.get("next", "")
+    if target and url_has_allowed_host_and_scheme(
+        target, allowed_hosts={request.get_host()}, require_https=request.is_secure(),
+    ):
+        request.session["open_cart_drawer"] = True
+        return redirect(target)
+    return redirect("shop:cart")
 
 
 @require_GET
@@ -48,9 +59,7 @@ def cart_add(request):
         messages.warning(request, "Die maximal verfügbare Menge befindet sich bereits im Warenkorb.")
     elif after < before + quantity:
         messages.warning(request, f"Nur noch {variant.stock} Stück verfügbar – die Menge wurde angepasst.")
-    else:
-        messages.success(request, f"„{variant.product.name} – {variant.name}“ wurde in den Warenkorb gelegt.")
-    return redirect("shop:cart")
+    return _back(request)
 
 
 @require_POST
@@ -60,11 +69,10 @@ def cart_update(request, variant_id):
     Cart(request).set(variant, quantity)
     if quantity > variant.stock:
         messages.warning(request, f"Nur noch {variant.stock} Stück verfügbar – die Menge wurde angepasst.")
-    return redirect("shop:cart")
+    return _back(request)
 
 
 @require_POST
 def cart_remove(request, variant_id):
     Cart(request).remove(variant_id)
-    messages.info(request, "Der Artikel wurde aus dem Warenkorb entfernt.")
-    return redirect("shop:cart")
+    return _back(request)

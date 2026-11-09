@@ -22,14 +22,30 @@
 </nav>
 
 <div class="product">
-  <div class="product-gallery">
-    {% for img in images %}
-      {% if forloop.first %}
-        {% responsive_image img.image img.alt_text sizes="(max-width: 860px) 100vw, 640px" loading="eager" fetchpriority="high" %}
-      {% else %}
-        {% responsive_image img.image img.alt_text sizes="(max-width: 860px) 100vw, 640px" %}
-      {% endif %}
-    {% endfor %}
+  <div class="gallery" data-gallery>
+    <div class="gallery-track" data-gallery-track>
+      {% for img in images %}
+        <figure class="gallery-slide">
+          {% if forloop.first %}
+            {% responsive_image img.image img.alt_text sizes="(max-width: 860px) 100vw, 640px" loading="eager" fetchpriority="high" %}
+          {% else %}
+            {% responsive_image img.image img.alt_text sizes="(max-width: 860px) 100vw, 640px" %}
+          {% endif %}
+        </figure>
+      {% empty %}
+        <div class="gallery-slide"></div>
+      {% endfor %}
+    </div>
+    {% if images|length > 1 %}
+      <div class="gallery-thumbs">
+        {% for img in images %}
+          <button type="button" class="gallery-thumb{% if forloop.first %} is-active{% endif %}"
+                  data-gallery-thumb="{{ forloop.counter0 }}" aria-label="Bild {{ forloop.counter }} anzeigen">
+            {% responsive_image img.image "" sizes="72px" %}
+          </button>
+        {% endfor %}
+      </div>
+    {% endif %}
   </div>
 
   <div class="product-info">
@@ -37,14 +53,47 @@
     {% if product.short_description %}<p class="lead">{{ product.short_description }}</p>{% endif %}
 
     {% if variants %}
-      <form class="buy-box" method="post" action="{% url 'shop:cart_add' %}">
+      {% variant_options variants as opts %}
+      <form id="buy-form" class="buy-box" method="post" action="{% url 'shop:cart_add' %}">
         {% csrf_token %}
-        <fieldset>
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+
+        {% if opts.enabled %}
+          <div class="variant-picker" data-variant-picker hidden>
+            {% if opts.colors %}
+              <fieldset class="option-group">
+                <legend>Farbe: <span data-selected-color></span></legend>
+                <div class="swatches">
+                  {% for c in opts.colors %}
+                    <button type="button" class="swatch" data-color="{{ c.name }}" style="--swatch: {{ c.hex }}"
+                            aria-pressed="false" title="{{ c.name }}"><span class="visually-hidden">{{ c.name }}</span></button>
+                  {% endfor %}
+                </div>
+              </fieldset>
+            {% endif %}
+            {% if opts.sizes %}
+              <fieldset class="option-group">
+                <legend>Größe</legend>
+                <div class="size-options">
+                  {% for s in opts.sizes %}
+                    <button type="button" class="size-option" data-size="{{ s }}" aria-pressed="false">{{ s }}</button>
+                  {% endfor %}
+                </div>
+              </fieldset>
+            {% endif %}
+            <p class="picker-price"><strong data-price></strong><s data-compare></s></p>
+            <p class="stock-note" data-stock-note aria-live="polite"></p>
+          </div>
+          {{ opts.data|json_script:"variant-data" }}
+        {% endif %}
+
+        <fieldset class="variant-list" data-variant-list>
           <legend>Variante wählen</legend>
           {% for v in variants %}
             <label class="variant{% if not v.in_stock %} is-disabled{% endif %}">
               <input type="radio" name="variant" value="{{ v.id }}"
                      {% if not v.in_stock %}disabled{% elif forloop.first %}checked{% endif %}>
+              {% if v.color_hex %}<span class="swatch-dot" style="--swatch: {{ v.color_hex }}"></span>{% endif %}
               <span class="variant-name">{{ v.name }}</span>
               {% if not v.in_stock %}<span class="badge">Ausverkauft</span>{% endif %}
               <span class="variant-price">
@@ -54,23 +103,84 @@
             </label>
           {% endfor %}
         </fieldset>
+
         <p class="tax-note">{{ SHOP_TAX_NOTE }}</p>
         <div class="qty">
           <label for="quantity">Menge</label>
-          <input id="quantity" type="number" name="quantity" value="1" min="1" max="99">
+          <input id="quantity" type="number" name="quantity" inputmode="numeric" value="1" min="1" max="99">
         </div>
-        <button type="submit" class="btn">In den Warenkorb</button>
+        <button type="submit" class="btn" data-buy-button>In den Warenkorb</button>
       </form>
+
+      <ul class="service-list">
+        {% if store.shipping_cost is not None %}
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+            <span>{% if store.shipping_cost %}Versand {{ store.shipping_cost|floatformat:2 }} €{% else %}Kostenloser Versand{% endif %}{% if store.free_shipping_threshold %} · ab {{ store.free_shipping_threshold|floatformat:0 }} € kostenlos{% endif %}</span>
+          </li>
+        {% elif store.free_shipping_threshold %}
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+            <span>Kostenloser Versand ab {{ store.free_shipping_threshold|floatformat:0 }} €</span>
+          </li>
+        {% endif %}
+        {% if store.delivery_time %}
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            <span>Lieferzeit: {{ store.delivery_time }}</span>
+          </li>
+        {% endif %}
+        {% if store.returns_note %}
+          <li>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+            <span>{{ store.returns_note }}</span>
+          </li>
+        {% endif %}
+        <li>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+          <span>Sichere Zahlung</span>
+        </li>
+      </ul>
     {% else %}
       <p>Dieses Produkt ist derzeit nicht verfügbar.</p>
     {% endif %}
 
-    {% if product.description %}
-      <section class="description">
-        <h2>Produktbeschreibung</h2>
-        {{ product.description|linebreaks }}
-      </section>
-    {% endif %}
+    <div class="accordion">
+      {% if product.description %}
+        <details open>
+          <summary>Produktbeschreibung</summary>
+          <div class="accordion-body">{{ product.description|linebreaks }}</div>
+        </details>
+      {% endif %}
+      {% if product.size_guide %}
+        <details>
+          <summary>Größe &amp; Maße</summary>
+          <div class="accordion-body">{{ product.size_guide|linebreaks }}</div>
+        </details>
+      {% endif %}
+      <details>
+        <summary>Versand &amp; Rückgabe</summary>
+        <div class="accordion-body">
+          {% if store.delivery_time %}<p>Lieferzeit innerhalb Österreichs: {{ store.delivery_time }}.</p>{% endif %}
+          {% if store.shipping_cost is not None %}
+            <p>Versandkosten: {% if store.shipping_cost %}{{ store.shipping_cost|floatformat:2 }} €{% else %}kostenlos{% endif %}{% if store.free_shipping_threshold %}, ab {{ store.free_shipping_threshold|floatformat:2 }} € Bestellwert kostenlos{% endif %}.</p>
+          {% endif %}
+          <p>{% if store.returns_note %}{{ store.returns_note }}. {% endif %}Alle Details unter
+            <a href="{% url 'pages:detail' 'widerrufsrecht' %}">Widerrufsrecht</a> und
+            <a href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a>.</p>
+        </div>
+      </details>
+    </div>
   </div>
 </div>
+
+{% if variants %}
+  <div class="mobile-buybar" data-buybar hidden>
+    <div>
+      <strong data-buybar-price>{{ variants.0.price|floatformat:2 }} €</strong>
+      <span class="small muted">{{ SHOP_TAX_NOTE }}</span>
+    </div>
+    <button type="submit" form="buy-form" class="btn" data-buybar-button>In den Warenkorb</button>
+  </div>
+{% endif %}
 {% endblock %}

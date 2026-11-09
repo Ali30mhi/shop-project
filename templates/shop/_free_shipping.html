@@ -1,0 +1,13 @@
+{% if free_shipping_threshold %}
+  <div class="ship-progress-box">
+    {% if free_shipping_remaining > 0 %}
+      <p>Noch <strong>{{ free_shipping_remaining|floatformat:2 }} €</strong> bis zum kostenlosen Versand</p>
+    {% else %}
+      <p><strong>Ihre Bestellung wird kostenlos versendet.</strong></p>
+    {% endif %}
+    <div class="ship-progress" role="progressbar" aria-label="Fortschritt bis zum kostenlosen Versand"
+         aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ free_shipping_percent }}">
+      <span style="width: {{ free_shipping_percent }}%"></span>
+    </div>
+  </div>
+{% endif %}

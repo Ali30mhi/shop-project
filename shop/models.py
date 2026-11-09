@@ -1,10 +1,15 @@
 from decimal import Decimal
 
 from django.conf import settings
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, RegexValidator
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+
+HEX_COLOR = RegexValidator(
+    r"^#[0-9A-Fa-f]{6}$",
+    "Bitte einen Farbcode im Format #RRGGBB eingeben, z. B. #556B2F.",
+)
 
 
 class Product(models.Model):
@@ -15,6 +20,10 @@ class Product(models.Model):
     )
     short_description = models.CharField("Kurzbeschreibung", max_length=300, blank=True)
     description = models.TextField("Beschreibung", blank=True)
+    size_guide = models.TextField(
+        "Größe & Maße", blank=True,
+        help_text="Maße, Größentabelle oder Pflegehinweise – erscheint als eigener Abschnitt.",
+    )
     meta_title = models.CharField(
         "SEO-Titel", max_length=70, blank=True,
         help_text="Titel in den Google-Ergebnissen (ca. 60 Zeichen). Leer = Produktname.",
@@ -87,7 +96,15 @@ class ProductImage(models.Model):
 
 class ProductVariant(models.Model):
     product = models.ForeignKey(Product, verbose_name="Produkt", related_name="variants", on_delete=models.CASCADE)
-    name = models.CharField("Variante", max_length=100, help_text="z. B. „Groß / Schwarz“ oder „500 g“.")
+    color_name = models.CharField("Farbe", max_length=50, blank=True, help_text="z. B. Olivgrün")
+    color_hex = models.CharField(
+        "Farbcode", max_length=7, blank=True, validators=[HEX_COLOR], help_text="z. B. #556B2F",
+    )
+    size = models.CharField("Größe", max_length=30, blank=True, help_text="z. B. M oder 42")
+    name = models.CharField(
+        "Bezeichnung", max_length=100, blank=True,
+        help_text="Optional. Leer = wird aus Farbe und Größe erzeugt.",
+    )
     sku = models.CharField("Artikelnummer (SKU)", max_length=64, unique=True)
     price = models.DecimalField(
         "Preis (€)", max_digits=10, decimal_places=2,
@@ -108,6 +125,11 @@ class ProductVariant(models.Model):
 
     def __str__(self):
         return f"{self.product.name} - {self.name}"
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = " / ".join(part for part in (self.color_name, self.size) if part) or self.sku
+        super().save(*args, **kwargs)
 
     @property
     def in_stock(self):

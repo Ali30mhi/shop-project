@@ -6,7 +6,7 @@ from django.core.files.storage import default_storage
 from PIL import Image, ImageOps
 
 WIDTHS = (480, 800, 1200, 1800)
-QUALITY = 80
+QUALITY = 88
 
 
 def variant_name(original_name, width):

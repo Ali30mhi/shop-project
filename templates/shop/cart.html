@@ -29,7 +29,7 @@
         <form method="post" action="{% url 'shop:cart_update' line.variant.id %}" class="qty-form">
           {% csrf_token %}
           <label class="visually-hidden" for="qty-{{ line.variant.id }}">Menge</label>
-          <input id="qty-{{ line.variant.id }}" type="number" name="quantity"
+          <input id="qty-{{ line.variant.id }}" type="number" name="quantity" inputmode="numeric"
                  value="{{ line.quantity }}" min="1" max="{{ line.variant.stock }}">
           <button type="submit" class="btn-link">Aktualisieren</button>
         </form>
@@ -43,13 +43,13 @@
   </ul>
 
   <aside class="cart-summary" aria-label="Zusammenfassung">
-    <p class="cart-total"><span>Zwischensumme</span><strong>{{ total|floatformat:2 }} €</strong></p>
-    <p class="tax-note">{{ SHOP_TAX_NOTE }}</p>
+    {% include "shop/_free_shipping.html" %}
+    {% include "shop/_cart_totals.html" %}
     <button type="button" class="btn" disabled>Zur Kasse</button>
   </aside>
 </div>
 {% else %}
   <p>Ihr Warenkorb ist leer.</p>
-  <p><a href="{% url 'shop:home' %}">Weiter einkaufen</a></p>
+  <p><a class="btn btn-inline" href="{% url 'shop:home' %}#produkte">Weiter einkaufen</a></p>
 {% endif %}
 {% endblock %}

@@ -1,0 +1,68 @@
+{% load shop_tags %}
+<div class="drawer-overlay" data-drawer-overlay hidden></div>
+<aside class="drawer" id="cart-drawer" role="dialog" aria-modal="true" aria-labelledby="cart-drawer-title" hidden>
+  <div class="drawer-head">
+    <h2 id="cart-drawer-title">Warenkorb</h2>
+    <button type="button" class="drawer-close" data-drawer-close aria-label="Warenkorb schließen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+
+  {% if cart_lines %}
+    {% include "shop/_free_shipping.html" %}
+
+    <ul class="drawer-lines">
+      {% for line in cart_lines %}
+        <li class="drawer-line">
+          {% with image=line.product.main_image %}
+            {% if image %}
+              {% responsive_image image.image image.alt_text sizes="80px" css_class="drawer-thumb" %}
+            {% else %}
+              <span class="drawer-thumb"></span>
+            {% endif %}
+          {% endwith %}
+
+          <div class="drawer-line-info">
+            <a href="{{ line.product.get_absolute_url }}">{{ line.product.name }}</a>
+            <span class="muted small">{{ line.variant.name }}</span>
+            <strong>{{ line.line_total|floatformat:2 }} €</strong>
+            <div class="stepper">
+              <form method="post" action="{% url 'shop:cart_update' line.variant.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="quantity" value="{{ line.quantity|add:'-1' }}">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" aria-label="Menge verringern">−</button>
+              </form>
+              <span>{{ line.quantity }}</span>
+              <form method="post" action="{% url 'shop:cart_update' line.variant.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="quantity" value="{{ line.quantity|add:'1' }}">
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button type="submit" aria-label="Menge erhöhen" {% if line.quantity >= line.variant.stock %}disabled{% endif %}>+</button>
+              </form>
+            </div>
+          </div>
+
+          <form method="post" action="{% url 'shop:cart_remove' line.variant.id %}" class="drawer-remove">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" aria-label="{{ line.product.name }} entfernen">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+            </button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+
+    <div class="drawer-foot">
+      {% include "shop/_cart_totals.html" %}
+      <a class="btn" href="{% url 'shop:cart' %}">Zum Warenkorb</a>
+      <button type="button" class="btn-link drawer-continue" data-drawer-close>Weiter einkaufen</button>
+    </div>
+  {% else %}
+    <div class="drawer-empty">
+      <p>Ihr Warenkorb ist leer.</p>
+      <button type="button" class="btn" data-drawer-close>Weiter einkaufen</button>
+    </div>
+  {% endif %}
+</aside>

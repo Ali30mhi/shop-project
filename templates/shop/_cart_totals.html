@@ -1,0 +1,10 @@
+<dl class="totals">
+  <div><dt>Zwischensumme</dt><dd>{{ cart_total|floatformat:2 }} €</dd></div>
+  {% if cart_shipping is not None %}
+    <div><dt>Versand</dt><dd>{% if cart_shipping %}{{ cart_shipping|floatformat:2 }} €{% else %}kostenlos{% endif %}</dd></div>
+    <div class="totals-grand"><dt>Gesamt</dt><dd>{{ cart_grand_total|floatformat:2 }} €</dd></div>
+  {% else %}
+    <div><dt>Versand</dt><dd class="muted">wird an der Kasse berechnet</dd></div>
+  {% endif %}
+</dl>
+<p class="tax-note">{% if cart_shipping is not None %}{{ SHOP_TOTAL_NOTE }}{% else %}{{ SHOP_TAX_NOTE }}{% endif %}</p>

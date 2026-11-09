@@ -6,7 +6,10 @@ from .models import Order, OrderItem, Product, ProductImage, ProductVariant
 class ProductVariantInline(admin.TabularInline):
     model = ProductVariant
     extra = 1
-    fields = ("name", "sku", "price", "compare_at_price", "stock", "is_active", "sort_order")
+    fields = (
+        "color_name", "color_hex", "size", "name", "sku",
+        "price", "compare_at_price", "stock", "is_active", "sort_order",
+    )
 
 
 class ProductImageInline(admin.TabularInline):
@@ -24,7 +27,7 @@ class ProductAdmin(admin.ModelAdmin):
     inlines = [ProductVariantInline, ProductImageInline]
     fieldsets = (
         (None, {"fields": ("name", "slug", "is_active")}),
-        ("Inhalt", {"fields": ("short_description", "description")}),
+        ("Inhalt", {"fields": ("short_description", "description", "size_guide")}),
         ("Suchmaschinen (SEO)", {"fields": ("meta_title", "meta_description")}),
     )
 

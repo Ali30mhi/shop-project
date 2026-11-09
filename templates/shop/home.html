@@ -8,34 +8,24 @@
 {% endblock %}
 
 {% block content %}
-<section class="hero">
-  {% if store.hero_image %}
-    {% responsive_image store.hero_image store.hero_image_alt sizes="(max-width: 1248px) 100vw, 1200px" css_class="hero-image" loading="eager" fetchpriority="high" %}
-  {% endif %}
+<section class="hero{% if store.hero_image %} has-image focus-{{ store.hero_image_position }}{% endif %}">
   <div class="hero-content">
     {% if store.hero_eyebrow %}<span class="eyebrow">{{ store.hero_eyebrow }}</span>{% endif %}
     <h1>{{ store.hero_title }}</h1>
     {% if store.hero_text %}<p>{{ store.hero_text }}</p>{% endif %}
-    <a class="btn-lime" href="#produkte">{{ store.hero_button }}</a>
+    <a class="btn btn-inline" href="#produkte">
+      {{ store.hero_button }}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
   </div>
+  {% if store.hero_image %}
+    <div class="hero-media">
+      {% responsive_image store.hero_image store.hero_image_alt sizes="(max-width: 860px) 100vw, 600px" loading="eager" fetchpriority="high" %}
+    </div>
+  {% endif %}
 </section>
 
-<section class="benefits" aria-label="Vorteile">
-  <div class="benefit">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
-    <div>{{ store.benefit_1_title }}<span>{{ store.benefit_1_text }}</span></div>
-  </div>
-  <div class="benefit">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
-    <div>{{ store.benefit_2_title }}<span>{{ store.benefit_2_text }}</span></div>
-  </div>
-  <div class="benefit">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
-    <div>{{ store.benefit_3_title }}<span>{{ store.benefit_3_text }}</span></div>
-  </div>
-</section>
-
-<section id="produkte" aria-labelledby="produkte-titel">
+<section id="produkte" class="products-section" aria-labelledby="produkte-titel">
   <div class="section-head">
     <div>
       <h2 id="produkte-titel">{{ store.products_title }}</h2>
@@ -67,12 +57,52 @@
               {% if card.compare %}<span class="old-price">{{ card.compare|floatformat:2 }} €</span>{% endif %}
             </p>
           {% endif %}
-          <a class="btn-outline" href="{{ product.get_absolute_url }}">Ansehen</a>
+          {% if card.colors %}
+            <p class="card-swatches">
+              <span class="visually-hidden">Farben:</span>
+              {% for c in card.colors %}
+                <span class="swatch-dot" style="--swatch: {{ c.hex }}" title="{{ c.name }}"></span>
+                <span class="visually-hidden">{{ c.name }}{% if not forloop.last %}, {% endif %}</span>
+              {% endfor %}
+              {% if card.more_colors %}<span class="muted small">+{{ card.more_colors }}</span>{% endif %}
+            </p>
+          {% endif %}
+          {% if card.quick_variant %}
+            <form method="post" action="{% url 'shop:cart_add' %}" class="quick-add">
+              {% csrf_token %}
+              <input type="hidden" name="variant" value="{{ card.quick_variant.id }}">
+              <input type="hidden" name="quantity" value="1">
+              <input type="hidden" name="next" value="{{ request.get_full_path }}">
+              <button type="submit" class="btn-outline">In den Warenkorb</button>
+            </form>
+          {% else %}
+            <a class="btn-outline" href="{{ product.get_absolute_url }}">Ansehen</a>
+          {% endif %}
         </div>
       </article>
     {% empty %}
       <p>Derzeit sind keine Produkte verfügbar.</p>
     {% endfor %}
+  </div>
+
+  <p class="price-footnote">
+    Alle Preise {{ SHOP_TAX_NOTE }}.
+    <a href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a>
+  </p>
+</section>
+
+<section class="trust-bar" aria-label="Unsere Vorteile">
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>
+    <div>{{ store.benefit_1_title }}<span>{{ store.benefit_1_text }}</span></div>
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+    <div>{{ store.benefit_2_title }}<span>{{ store.benefit_2_text }}</span></div>
+  </div>
+  <div class="trust-item">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <div>{{ store.benefit_3_title }}<span>{{ store.benefit_3_text }}</span></div>
   </div>
 </section>
 {% endblock %}

@@ -47,9 +47,9 @@ class StoreSettings(models.Model):
         "Hero: Text", blank=True,
         default="Praktische, sorgfältig gefertigte Produkte mit zeitlosem Design – Qualität, die Sie jeden Tag begleitet.",
     )
-    hero_button = models.CharField("Hero: Button-Text", max_length=40, default="Produkte ansehen")
+    hero_button = models.CharField("Hero: Button-Text", max_length=40, default="Produkte entdecken")
     hero_image = models.ImageField(
-        "Hero: Bild", upload_to="site/", blank=True, help_text="Querformat, mindestens 1800 px breit.",
+        "Hero: Bild", upload_to="site/", blank=True, help_text="Hochformat oder quadratisch, mindestens 1200 px breit.",
     )
     hero_image_alt = models.CharField("Hero: Alt-Text des Bildes", max_length=200, blank=True)
 
@@ -72,6 +72,26 @@ class StoreSettings(models.Model):
         default="Von unseren Kundinnen und Kunden besonders geschätzt",
     )
 
+    free_shipping_threshold = models.DecimalField(
+        "Versandkostenfrei ab (€)", max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Leer lassen, wenn es keinen kostenlosen Versand gibt.",
+    )
+
+    shipping_cost = models.DecimalField(
+        "Versandkosten (€)", max_digits=10, decimal_places=2, null=True, blank=True,
+        help_text="Standardversand innerhalb Österreichs. Leer = wird an der Kasse berechnet.",
+    )
+    delivery_time = models.CharField("Lieferzeit", max_length=60, blank=True, default="2–4 Werktage")
+    returns_note = models.CharField(
+        "Rückgabe-Hinweis", max_length=120, blank=True, default="14 Tage Widerrufsrecht",
+    )
+    contact_email = models.EmailField("Kontakt-E-Mail", blank=True)
+    contact_phone = models.CharField("Kontakt-Telefon", max_length=40, blank=True)
+    hero_image_position = models.CharField(
+        "Hero: Bildausschnitt", max_length=10, default="center",
+        choices=[("center", "Mitte"), ("left", "Links"), ("right", "Rechts"), ("top", "Oben")],
+    )
+
     class Meta:
         verbose_name = "Shop-Einstellungen"
         verbose_name_plural = "Shop-Einstellungen"
@@ -87,3 +107,9 @@ class StoreSettings(models.Model):
     def load(cls):
         obj, _ = cls.objects.get_or_create(pk=1)
         return obj
+
+    @classmethod
+    def for_request(cls, request):
+        if not hasattr(request, "_store_settings"):
+            request._store_settings = cls.load()
+        return request._store_settings

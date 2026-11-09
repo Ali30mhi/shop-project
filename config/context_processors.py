@@ -8,4 +8,5 @@ def site(request):
         "SITE_URL": settings.SITE_URL.rstrip("/"),
         "SEO_NOINDEX": settings.SEO_NOINDEX,
         "SHOP_TAX_NOTE": settings.SHOP_TAX_NOTE,
+        "SHOP_TOTAL_NOTE": settings.SHOP_TOTAL_NOTE,
     }

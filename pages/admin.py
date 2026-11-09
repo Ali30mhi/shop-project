@@ -16,15 +16,20 @@ class PageAdmin(admin.ModelAdmin):
 class StoreSettingsAdmin(admin.ModelAdmin):
     fieldsets = (
         ("Hinweisleiste", {"fields": ("announcement",)}),
-        ("Startseite: Hero", {"fields": (
-            "hero_eyebrow", "hero_title", "hero_text", "hero_button", "hero_image", "hero_image_alt",
+        ("Versand & Service", {"fields": (
+            "shipping_cost", "free_shipping_threshold", "delivery_time", "returns_note",
         )}),
+        ("Kontakt", {"fields": ("contact_email", "contact_phone")}),
+        ("Startseite: Hero", {"fields": (
+            "hero_eyebrow", "hero_title", "hero_text", "hero_button",
+            "hero_image", "hero_image_position", "hero_image_alt",
+        )}),
+        ("Startseite: Produkte", {"fields": ("products_title", "products_subtitle")}),
         ("Startseite: Vorteile", {"fields": (
             ("benefit_1_title", "benefit_1_text"),
             ("benefit_2_title", "benefit_2_text"),
             ("benefit_3_title", "benefit_3_text"),
         )}),
-        ("Startseite: Produkte", {"fields": ("products_title", "products_subtitle")}),
     )
 
     def has_add_permission(self, request):

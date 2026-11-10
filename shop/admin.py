@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Order, OrderItem, Product, ProductImage, ProductVariant
+from .models import Category, Order, OrderItem, Product, ProductImage, ProductVariant
 
 
 class ProductVariantInline(admin.TabularInline):
@@ -18,15 +18,23 @@ class ProductImageInline(admin.TabularInline):
     fields = ("image", "alt_text", "sort_order")
 
 
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ("name", "sort_order", "is_active")
+    list_editable = ("sort_order", "is_active")
+    search_fields = ("name",)
+    prepopulated_fields = {"slug": ("name",)}
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("name", "is_active", "updated_at")
-    list_filter = ("is_active",)
+    list_display = ("name", "category", "is_active", "updated_at")
+    list_filter = ("is_active", "category")
     search_fields = ("name", "slug")
     prepopulated_fields = {"slug": ("name",)}
     inlines = [ProductVariantInline, ProductImageInline]
     fieldsets = (
-        (None, {"fields": ("name", "slug", "is_active")}),
+        (None, {"fields": ("name", "slug", "category", "is_active")}),
         ("Inhalt", {"fields": ("short_description", "description", "size_guide")}),
         ("Suchmaschinen (SEO)", {"fields": ("meta_title", "meta_description")}),
     )

@@ -60,6 +60,7 @@ TEMPLATES = [
                 "django.contrib.messages.context_processors.messages",
                 "config.context_processors.site",
                 "shop.context_processors.cart",
+                "shop.context_processors.catalog",
                 "pages.context_processors.site_content",
             ],
         },

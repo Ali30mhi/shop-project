@@ -7,6 +7,7 @@ from django.conf import settings
 from django.test import Client
 
 from pages.models import Page
+from shop.context_processors import visible_categories
 from shop.models import Product, ProductVariant
 
 PREFIX = os.environ.get("PREVIEW_PREFIX", "/shop-vorschau")
@@ -24,7 +25,7 @@ BANNER = (
 )
 BLOCK_POST = (
     "<script>document.addEventListener('submit',function(e){"
-    "if((e.target.method||'').toLowerCase()==='post'){e.preventDefault();"
+    "if((e.target.method||'').toLowerCase()==='post'||e.target.getAttribute('role')==='search'){e.preventDefault();"
     "alert('Vorschau: Diese Funktion ist in der Demo deaktiviert.');}},true);</script>"
 )
 
@@ -74,9 +75,10 @@ def write_page(html, target):
     path.write_text(html, encoding="utf-8")
 
 
-urls = ["/", "/warenkorb/", "/konto/anmelden/", "/konto/registrieren/", "/konto/passwort-vergessen/"]
+urls = ["/", "/suche/", "/warenkorb/", "/konto/anmelden/", "/konto/registrieren/", "/konto/passwort-vergessen/"]
 urls += [p.get_absolute_url() for p in Product.objects.filter(is_active=True)]
 urls += [p.get_absolute_url() for p in Page.objects.all()]
+urls += [c.get_absolute_url() for c in visible_categories()]
 
 for url in urls:
     response = client.get(url)

@@ -1,8 +1,25 @@
 from decimal import Decimal
 
+from django.db.models import Count
+from django.utils.functional import SimpleLazyObject
+
 from pages.models import StoreSettings
 
 from .cart import Cart
+from .models import Category
+
+
+def visible_categories():
+    return (
+        Category.objects.filter(is_active=True, products__is_active=True)
+        .annotate(product_count=Count("products"))
+        .order_by("sort_order", "name")
+    )
+
+
+def catalog(request):
+    # Lazy: die Abfrage läuft nur, wenn ein Template die Kategorien wirklich nutzt.
+    return {"nav_categories": SimpleLazyObject(lambda: list(visible_categories()))}
 
 
 def cart(request):

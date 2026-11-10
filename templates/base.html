@@ -64,9 +64,21 @@
         <span class="logo-text">{{ SITE_NAME }}<small>Online-Shop aus Österreich</small></span>
       </a>
 
+      <form class="header-search" role="search" action="{% url 'shop:search' %}" method="get">
+        <label class="visually-hidden" for="header-q">Produkte suchen</label>
+        <input id="header-q" type="search" name="q" value="{{ search_query }}" placeholder="Produkt suchen …" maxlength="80" autocomplete="off" enterkeyhint="search">
+        <button type="submit">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span>Suchen</span>
+        </button>
+      </form>
+
       <nav class="main-nav" id="main-nav" aria-label="Hauptnavigation">
         <a href="{% url 'shop:home' %}">Startseite</a>
-        <a href="{% url 'shop:home' %}#produkte">Produkte</a>
+        <a href="{% url 'shop:home' %}#produkte">Alle Produkte</a>
+        {% for c in nav_categories %}
+          <a href="{{ c.get_absolute_url }}"{% if category and category.pk == c.pk %} aria-current="page"{% endif %}>{{ c.name }}</a>
+        {% endfor %}
         <a href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a>
       </nav>
 

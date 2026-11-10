@@ -18,6 +18,10 @@
 <nav class="breadcrumbs" aria-label="Brotkrümelnavigation">
   <a href="{% url 'shop:home' %}">Startseite</a>
   <span aria-hidden="true">›</span>
+  {% if category %}
+    <a href="{{ category.get_absolute_url }}">{{ category.name }}</a>
+    <span aria-hidden="true">›</span>
+  {% endif %}
   <span aria-current="page">{{ product.name }}</span>
 </nav>
 

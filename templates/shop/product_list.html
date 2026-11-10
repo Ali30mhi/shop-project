@@ -1,0 +1,52 @@
+{% extends BASE_TEMPLATE|default:"base.html" %}
+
+{% block title %}{% if is_search and search_query %}Suche: {{ search_query }}{% else %}{{ list_title }}{% endif %} | {{ SITE_NAME }}{% endblock %}
+{% block meta_description %}{% if list_intro %}{{ list_intro }}{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block robots %}{% if is_search %}<meta name="robots" content="noindex, follow">{% else %}{{ block.super }}{% endif %}{% endblock %}
+
+{% block structured_data %}
+{% if breadcrumb_jsonld %}<script type="application/ld+json">{{ breadcrumb_jsonld }}</script>{% endif %}
+{% endblock %}
+
+{% block content %}
+<nav class="breadcrumbs" aria-label="Brotkrümelnavigation">
+  <a href="{% url 'shop:home' %}">Startseite</a>
+  <span aria-hidden="true">›</span>
+  <span aria-current="page">{{ list_title }}</span>
+</nav>
+
+<header class="list-head">
+  <h1>{% if is_search and search_query %}Suche nach „{{ search_query }}“{% else %}{{ list_title }}{% endif %}</h1>
+  {% if list_intro %}<p class="lead">{{ list_intro }}</p>{% endif %}
+  {% with count=products|length %}
+    {% if count %}
+      <p class="list-count">{{ count }} {% if is_search %}Ergebnis{{ count|pluralize:"se" }}{% else %}Produkt{{ count|pluralize:"e" }}{% endif %}</p>
+    {% endif %}
+  {% endwith %}
+</header>
+
+{% if products %}
+  <h2 class="visually-hidden">Produkte</h2>
+  <div class="products">
+    {% for product in products %}
+      {% include "shop/_product_card.html" %}
+    {% endfor %}
+  </div>
+  <p class="price-footnote">
+    Alle Preise {{ SHOP_TAX_NOTE }}.
+    <a href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a>
+  </p>
+{% else %}
+  <div class="empty-state">
+    {% if is_search and search_query %}
+      <p><strong>Keine Produkte gefunden.</strong></p>
+      <p class="muted">Bitte prüfen Sie die Schreibweise oder versuchen Sie einen anderen Begriff.</p>
+    {% elif is_search %}
+      <p><strong>Bitte geben Sie oben einen Suchbegriff ein.</strong></p>
+    {% else %}
+      <p><strong>In dieser Kategorie gibt es derzeit keine Produkte.</strong></p>
+    {% endif %}
+    <a class="btn btn-inline" href="{% url 'shop:home' %}#produkte">Alle Produkte ansehen</a>
+  </div>
+{% endif %}
+{% endblock %}

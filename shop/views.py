@@ -1,13 +1,14 @@
 import stripe
 from django.conf import settings
 from django.db import transaction
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 
-from .models import Order, Product
+from .models import Category, Order, Product
 from .seo import absolute_url, breadcrumb_jsonld, product_jsonld, website_jsonld
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -20,12 +21,51 @@ def _tpl(name):
     return name
 
 
+def _catalog():
+    return Product.objects.filter(is_active=True).prefetch_related("images", "variants")
+
+
 @require_GET
 def home(request):
-    products = Product.objects.filter(is_active=True).prefetch_related("images", "variants")
+    products = _catalog()
     return render(request, _tpl("shop/home.html"), {
         "products": products,
         "website_jsonld": website_jsonld(),
+    })
+
+
+@require_GET
+def category_detail(request, slug):
+    category = get_object_or_404(Category, slug=slug, is_active=True)
+    return render(request, "shop/product_list.html", {
+        "category": category,
+        "products": _catalog().filter(category=category),
+        "list_title": category.name,
+        "list_intro": category.description,
+        "breadcrumb_jsonld": breadcrumb_jsonld([
+            ("Startseite", absolute_url("/")),
+            (category.name, absolute_url(category.get_absolute_url())),
+        ]),
+    })
+
+
+@require_GET
+def search(request):
+    query = " ".join(request.GET.get("q", "").split())[:80]
+    products = []
+    if query:
+        products = _catalog().filter(
+            Q(name__icontains=query)
+            | Q(short_description__icontains=query)
+            | Q(description__icontains=query)
+            | Q(category__name__icontains=query)
+            | Q(variants__sku__iexact=query)
+        ).distinct()
+    return render(request, "shop/product_list.html", {
+        "is_search": True,
+        "search_query": query,
+        "products": products,
+        "list_title": "Suche",
     })
 
 
@@ -35,18 +75,21 @@ def product_detail(request, slug):
     variants = list(product.active_variants)
     images = list(product.images.all())
     canonical_url = absolute_url(product.get_absolute_url())
+    category = product.category if product.category and product.category.is_active else None
+    crumbs = [("Startseite", absolute_url("/"))]
+    if category:
+        crumbs.append((category.name, absolute_url(category.get_absolute_url())))
+    crumbs.append((product.name, canonical_url))
 
     return render(request, _tpl("shop/product_detail.html"), {
         "product": product,
+        "category": category,
         "variants": variants,
         "images": images,
         "canonical_url": canonical_url,
         "og_image": absolute_url(images[0].image.url) if images else "",
         "product_jsonld": product_jsonld(product, variants, images),
-        "breadcrumb_jsonld": breadcrumb_jsonld([
-            ("Startseite", absolute_url("/")),
-            (product.name, canonical_url),
-        ]),
+        "breadcrumb_jsonld": breadcrumb_jsonld(crumbs),
     })
 
 
@@ -58,6 +101,7 @@ def robots_txt(request):
         "Disallow: /warenkorb/",
         "Disallow: /kasse/",
         "Disallow: /konto/",
+        "Disallow: /suche/",
         "",
         f"Sitemap: {absolute_url('/sitemap.xml')}",
     ]

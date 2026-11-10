@@ -12,11 +12,48 @@ HEX_COLOR = RegexValidator(
 )
 
 
+class Category(models.Model):
+    name = models.CharField("Name", max_length=100)
+    slug = models.SlugField(
+        "URL-Kürzel", max_length=120, unique=True, blank=True,
+        help_text="Wird automatisch aus dem Namen erzeugt.",
+    )
+    description = models.CharField(
+        "Kurzbeschreibung", max_length=200, blank=True,
+        help_text="Erscheint auf der Kategorie-Kachel und auf der Kategorieseite.",
+    )
+    sort_order = models.PositiveIntegerField("Reihenfolge", default=0)
+    is_active = models.BooleanField(
+        "Aktiv", default=True,
+        help_text="Kategorien ohne aktive Produkte werden im Shop nicht angezeigt.",
+    )
+
+    class Meta:
+        ordering = ["sort_order", "name"]
+        verbose_name = "Kategorie"
+        verbose_name_plural = "Kategorien"
+
+    def __str__(self):
+        return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse("shop:category", args=[self.slug])
+
+
 class Product(models.Model):
     name = models.CharField("Name", max_length=200)
     slug = models.SlugField(
         "URL-Kürzel", max_length=220, unique=True, blank=True,
         help_text="Wird automatisch aus dem Namen erzeugt.",
+    )
+    category = models.ForeignKey(
+        Category, verbose_name="Kategorie", related_name="products",
+        null=True, blank=True, on_delete=models.SET_NULL,
     )
     short_description = models.CharField("Kurzbeschreibung", max_length=300, blank=True)
     description = models.TextField("Beschreibung", blank=True)

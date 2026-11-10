@@ -76,14 +76,20 @@ h2 { line-height: 1.3; letter-spacing: -0.4px; }
 
 .site-header { position: sticky; top: 0; z-index: 20; overflow-x: clip; border-bottom: 1px solid var(--line); background: var(--header-bg); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .header-inner { display: flex; flex-wrap: wrap; align-items: center; gap: 0 16px; }
-.logo { display: inline-flex; align-items: center; gap: 10px; min-height: var(--tap); margin-right: auto; padding: 12px 0; text-decoration: none; color: var(--ink); }
+.logo { display: inline-flex; align-items: center; gap: 10px; min-height: var(--tap); margin-right: 24px; padding: 12px 0; text-decoration: none; color: var(--ink); }
 .logo-mark { display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 10px; background: var(--primary); color: var(--on-primary); font-size: 20px; font-weight: 800; line-height: 1; }
 .logo-text { display: flex; flex-direction: column; font-size: 20px; font-weight: 800; letter-spacing: -0.4px; line-height: 1.15; }
 .logo-text small { color: var(--muted); font-size: 11px; font-weight: 500; letter-spacing: 0; }
+.header-search { display: flex; flex: 1 1 260px; max-width: 620px; margin: 0 auto 0 0; }
+.header-search input { flex: 1; min-width: 0; height: var(--tap); padding: 0 18px; border: 1px solid var(--line-strong); border-right: 0; border-radius: 999px 0 0 999px; background: var(--bg); font-size: 16px; }
+.header-search input:focus { outline: 2px solid var(--focus); outline-offset: -2px; }
+.header-search button { display: inline-flex; align-items: center; gap: 8px; height: var(--tap); padding: 0 20px 0 16px; border: 0; border-radius: 0 999px 999px 0; background: var(--primary); color: var(--on-primary); font-size: 15px; font-weight: 700; cursor: pointer; transition: background .2s; }
+.header-search svg { width: 18px; height: 18px; }
 .main-nav { position: relative; order: 3; flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 2px; padding: 6px 0; font-size: 15px; font-weight: 600; }
 .main-nav::before { content: ""; position: absolute; top: 0; left: -100vw; right: -100vw; border-top: 1px solid var(--line); }
 .main-nav a { padding: 10px 14px; border-radius: var(--radius-sm); color: var(--ink); text-decoration: none; }
 .main-nav a:first-child { margin-left: -14px; }
+.main-nav a[aria-current="page"] { color: var(--accent); }
 .header-actions { display: flex; align-items: center; gap: 2px; }
 .icon-link { position: relative; display: inline-grid; place-items: center; width: var(--tap); height: var(--tap); padding: 0; border: 0; border-radius: 50%; background: transparent; color: var(--ink); text-decoration: none; cursor: pointer; transition: background .2s; }
 .icon-link svg { width: 22px; height: 22px; }
@@ -129,6 +135,24 @@ main { padding-top: 24px; padding-bottom: 64px; }
 .hero-tile-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; padding: 8px 14px; border-radius: 999px; background: #ffffff; color: #18181b; font-size: 14px; font-weight: 600; }
 .hero-tile-link svg { width: 16px; height: 16px; transition: transform .2s; }
 .pill { display: inline-block; padding: 4px 12px; border-radius: 999px; background: rgba(24, 24, 27, .28); color: #ffffff; font-size: 12px; font-weight: 700; letter-spacing: .08em; line-height: 16px; text-transform: uppercase; }
+
+.category-section { margin-top: 56px; }
+.category-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.category-tile { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-end; gap: 4px; min-height: 190px; padding: 20px; border-radius: var(--radius-lg); background: linear-gradient(135deg, #c2410c, #e11d48); color: #ffffff; font-size: 14px; text-decoration: none; }
+.category-tile:nth-child(4n+2) { background: linear-gradient(135deg, #0f766e, #0e7490); }
+.category-tile:nth-child(4n+3) { background: linear-gradient(135deg, #b45309, #c2410c); }
+.category-tile:nth-child(4n+4) { background: linear-gradient(135deg, #047857, #0f766e); }
+.category-tile strong { font-size: 20px; font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.category-tile-count { margin-bottom: auto; padding: 4px 12px; border-radius: 999px; background: rgba(24, 24, 27, .28); font-size: 12px; font-weight: 700; }
+.category-tile-link { display: inline-flex; align-items: center; gap: 6px; margin-top: 8px; font-weight: 700; }
+.category-tile-link svg { width: 16px; height: 16px; transition: transform .2s; }
+
+.list-head h1 { margin-bottom: 8px; font-size: clamp(26px, 3vw, 36px); }
+.list-head .lead { margin: 0 0 8px; }
+.list-count { margin: 0 0 20px; color: var(--muted); font-size: 14px; }
+.empty-state { margin-top: 16px; padding: 36px 24px; border: 1px dashed var(--line-strong); border-radius: var(--radius); text-align: center; }
+.empty-state p { margin: 0 0 8px; }
+.empty-state .btn { margin-top: 12px; }
 
 .products-section { margin-top: 56px; }
 .section-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin-bottom: 20px; }
@@ -357,6 +381,8 @@ main { padding-top: 24px; padding-bottom: 64px; }
   .hero .btn:hover { background: #f4f4f5; }
   .product-card .btn-outline:hover { background: var(--primary-hover); color: var(--on-primary); }
   .hero-tile:hover .hero-tile-link svg { transform: translateX(3px); }
+  .category-tile:hover .category-tile-link svg { transform: translateX(3px); }
+  .header-search button:hover { background: var(--primary-hover); }
   .help-chip:hover { text-decoration: underline; }
   .product-card:hover .product-image img { transform: scale(1.04); }
   .variant:hover, .size-option:hover { border-color: var(--muted); }
@@ -384,7 +410,12 @@ main { padding-top: 24px; padding-bottom: 64px; }
   .container { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
   .header-inner { gap: 4px; min-height: 60px; }
   .js .menu-toggle { display: inline-grid; margin-left: -10px; }
-  .logo { padding: 8px 0; }
+  .logo { margin-right: auto; padding: 8px 0; }
+  .header-search { order: 2; flex-basis: 100%; max-width: none; margin: 0 0 10px; }
+  .category-section { margin-top: 40px; }
+  .category-tiles { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .category-tile { min-height: 150px; padding: 16px; }
+  .category-tile strong { font-size: 17px; }
   .logo-mark { width: 34px; height: 34px; font-size: 17px; }
   .logo-text { font-size: 18px; }
   .logo-text small { display: none; }

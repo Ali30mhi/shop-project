@@ -2,7 +2,7 @@
 
 {% block title %}{% if is_search and search_query %}Suche: {{ search_query }}{% else %}{{ list_title }}{% endif %} | {{ SITE_NAME }}{% endblock %}
 {% block meta_description %}{% if list_intro %}{{ list_intro }}{% else %}{{ block.super }}{% endif %}{% endblock %}
-{% block robots %}{% if is_search %}<meta name="robots" content="noindex, follow">{% else %}{{ block.super }}{% endif %}{% endblock %}
+{% block robots %}{% if is_search or is_wishlist %}<meta name="robots" content="noindex, follow">{% else %}{{ block.super }}{% endif %}{% endblock %}
 
 {% block structured_data %}
 {% if breadcrumb_jsonld %}<script type="application/ld+json">{{ breadcrumb_jsonld }}</script>{% endif %}
@@ -41,6 +41,9 @@
     {% if is_search and search_query %}
       <p><strong>Keine Produkte gefunden.</strong></p>
       <p class="muted">Bitte prüfen Sie die Schreibweise oder versuchen Sie einen anderen Begriff.</p>
+    {% elif is_wishlist %}
+      <p><strong>Ihre Merkliste ist noch leer.</strong></p>
+      <p class="muted">Tippen Sie bei einem Produkt auf das Herz, um es zu merken.</p>
     {% elif is_search %}
       <p><strong>Bitte geben Sie oben einen Suchbegriff ein.</strong></p>
     {% else %}

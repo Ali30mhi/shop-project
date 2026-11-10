@@ -235,3 +235,26 @@ class OrderItem(models.Model):
     @property
     def line_total(self):
         return self.unit_price * self.quantity
+
+
+
+class WishlistItem(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, verbose_name="Kundenkonto",
+        related_name="wishlist_items", on_delete=models.CASCADE,
+    )
+    product = models.ForeignKey(
+        Product, verbose_name="Produkt", related_name="wishlist_items", on_delete=models.CASCADE,
+    )
+    created_at = models.DateTimeField("Gemerkt am", auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Merklisten-Eintrag"
+        verbose_name_plural = "Merkliste"
+        constraints = [
+            models.UniqueConstraint(fields=["user", "product"], name="unique_wishlist_item"),
+        ]
+
+    def __str__(self):
+        return f"{self.user} – {self.product}"

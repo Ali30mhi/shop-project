@@ -1,6 +1,15 @@
 {% load shop_tags %}
 {% product_card product as card %}
 <article class="product-card">
+  <form method="post" action="{% url 'shop:wishlist_toggle' %}" class="wish-form">
+    {% csrf_token %}
+    <input type="hidden" name="product" value="{{ product.id }}">
+    <input type="hidden" name="next" value="{{ request.get_full_path }}">
+    <button type="submit" class="wish-btn" aria-pressed="{% if product.id in wishlist_ids %}true{% else %}false{% endif %}" title="Merkliste"
+            aria-label="{{ product.name }}: {% if product.id in wishlist_ids %}von der Merkliste entfernen{% else %}auf die Merkliste setzen{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z"/></svg>
+    </button>
+  </form>
   <a class="product-image" href="{{ product.get_absolute_url }}" tabindex="-1" aria-hidden="true">
     {% if card.tag %}<span class="tag{% if card.sale %} tag-sale{% endif %}">{{ card.tag }}</span>{% endif %}
     {% with image=product.main_image %}

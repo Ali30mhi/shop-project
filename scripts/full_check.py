@@ -47,7 +47,7 @@ from shop.models import Product, ProductVariant
 
 PASS, FAIL = [], []
 
-POST_ENDPOINTS = re.compile(r"^/warenkorb/(hinzufuegen|\d+/aktualisieren|\d+/entfernen)/$")
+POST_ENDPOINTS = re.compile(r"^/(warenkorb/(hinzufuegen|\d+/aktualisieren|\d+/entfernen)|merkliste/umschalten)/$")
 LOGOUT = "/konto/abmelden/"
 STATIC = re.compile(r"^/(static|media)/")
 
@@ -100,6 +100,7 @@ def check_pages():
     crawl_page(client, "Startseite", "/")
     crawl_page(client, "Warenkorb", "/warenkorb/")
     crawl_page(client, "Suche (leer)", "/suche/")
+    crawl_page(client, "Merkliste (leer)", "/merkliste/")
     for c in visible_categories():
         crawl_page(client, f"Kategorie {c.slug}", c.get_absolute_url())
     crawl_page(client, "Anmelden", "/konto/anmelden/")
@@ -216,6 +217,48 @@ def check_catalog():
     record(ok, "Suche escaped Eingabe")
 
 
+def check_wishlist():
+    print("\n### MERKLISTE")
+    client = Client()
+    product = Product.objects.filter(is_active=True).first()
+    if product is None:
+        FAIL.append("Merkliste: kein aktives Produkt")
+        return
+    toggle, page = reverse("shop:wishlist_toggle"), reverse("shop:wishlist")
+
+    r = client.post(toggle, {"product": product.id, "next": "/"}, follow=True)
+    badge = re.search(r'wish-count[^>]*>\s*(\d+)', r.content.decode())
+    ok = r.status_code == 200 and bool(badge) and badge.group(1) == "1"
+    print(f"    Merken ohne Login -> {r.status_code}, Header-Zähler = {badge.group(1) if badge else 'FEHLT'}")
+    record(ok, "Merkliste: merken ohne Login")
+
+    ok = escape(product.name) in client.get(page).content.decode()
+    print(f"    Merkliste zeigt das Produkt: {ok}")
+    record(ok, "Merkliste: Seite zeigt Produkt")
+
+    ok = 'aria-pressed="true"' in client.get(product.get_absolute_url()).content.decode()
+    print(f"    Produktseite zeigt 'gemerkt': {ok}")
+    record(ok, "Merkliste: Zustand auf Produktseite")
+
+    password = "SicheresPass123!"
+    client.post(reverse("accounts:register"), {
+        "email": f"test-{uuid.uuid4().hex[:8]}@example.com", "first_name": "Test", "last_name": "Kunde",
+        "password1": password, "password2": password,
+    }, follow=True)
+    ok = escape(product.name) in client.get(page).content.decode()
+    print(f"    Nach Registrierung ins Konto übernommen: {ok}")
+    record(ok, "Merkliste: Übernahme ins Kundenkonto")
+
+    r = client.post(toggle, {"product": product.id, "next": page}, follow=True)
+    ok = "Ihre Merkliste ist noch leer" in r.content.decode()
+    print(f"    Entfernen: Merkliste ist danach leer: {ok}")
+    record(ok, "Merkliste: entfernen")
+
+    r = client.post(toggle, {"product": "abc"})
+    print(f"    Ungültiges Produkt -> {r.status_code}")
+    record(r.status_code == 404, "Merkliste: ungültiges Produkt liefert 404")
+
+
 def check_cart():
     print("\n### WARENKORB-FLOW (über gerenderte Seiten geprüft)")
     client = Client()
@@ -257,6 +300,7 @@ with transaction.atomic():
         check_pages()
         check_account()
         check_catalog()
+        check_wishlist()
         check_cart()
     finally:
         transaction.set_rollback(True)

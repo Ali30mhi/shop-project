@@ -94,6 +94,11 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c1.5-3.5 4.5-5 8-5s6.5 1.5 8 5"/></svg>
           <span class="icon-label">{% if user.is_authenticated %}Mein Konto{% else %}Anmelden{% endif %}</span>
         </a>
+        <a class="icon-link" href="{% url 'shop:wishlist' %}" title="Merkliste">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z"/></svg>
+          <span class="icon-label">Merkliste</span>
+          {% if wishlist_ids %}<span class="wish-count">{{ wishlist_ids|length }}</span>{% endif %}
+        </a>
         <a class="icon-link" href="{% url 'shop:cart' %}" title="Warenkorb" data-drawer-open aria-controls="cart-drawer">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 8h14l-1 12H6z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
           <span class="icon-label">Warenkorb</span>
@@ -139,6 +144,7 @@
           <a href="{% url 'shop:home' %}">Startseite</a>
           <a href="{% url 'shop:home' %}#produkte">Produkte</a>
           <a href="{% url 'shop:cart' %}">Warenkorb</a>
+          <a href="{% url 'shop:wishlist' %}">Merkliste</a>
           <a href="{% url 'pages:detail' 'versand-und-zahlung' %}">Versand &amp; Zahlung</a>
         </nav>
         <nav class="footer-col" aria-label="Konto">

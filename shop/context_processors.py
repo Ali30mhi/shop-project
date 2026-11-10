@@ -7,6 +7,7 @@ from pages.models import StoreSettings
 
 from .cart import Cart
 from .models import Category
+from .wishlist import Wishlist
 
 
 def visible_categories():
@@ -19,7 +20,10 @@ def visible_categories():
 
 def catalog(request):
     # Lazy: die Abfrage läuft nur, wenn ein Template die Kategorien wirklich nutzt.
-    return {"nav_categories": SimpleLazyObject(lambda: list(visible_categories()))}
+    return {
+        "nav_categories": SimpleLazyObject(lambda: list(visible_categories())),
+        "wishlist_ids": SimpleLazyObject(lambda: set(Wishlist(request).ids())),
+    }
 
 
 def cart(request):

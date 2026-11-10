@@ -115,6 +115,15 @@
         </div>
         <button type="submit" class="btn" data-buy-button>In den Warenkorb</button>
       </form>
+      <form method="post" action="{% url 'shop:wishlist_toggle' %}" class="wish-line">
+        {% csrf_token %}
+        <input type="hidden" name="product" value="{{ product.id }}">
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <button type="submit" class="btn-link wish-link" aria-pressed="{% if product.id in wishlist_ids %}true{% else %}false{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.6a4.3 4.3 0 0 1 7.5 2.7c0 5.6-7.5 10.2-7.5 10.2z"/></svg>
+          <span>{% if product.id in wishlist_ids %}Von der Merkliste entfernen{% else %}Auf die Merkliste{% endif %}</span>
+        </button>
+      </form>
 
       <ul class="service-list">
         {% if store.shipping_cost is not None %}

@@ -75,7 +75,7 @@ def write_page(html, target):
     path.write_text(html, encoding="utf-8")
 
 
-urls = ["/", "/suche/", "/warenkorb/", "/konto/anmelden/", "/konto/registrieren/", "/konto/passwort-vergessen/"]
+urls = ["/", "/suche/", "/merkliste/", "/warenkorb/", "/konto/anmelden/", "/konto/registrieren/", "/konto/passwort-vergessen/"]
 urls += [p.get_absolute_url() for p in Product.objects.filter(is_active=True)]
 urls += [p.get_absolute_url() for p in Page.objects.all()]
 urls += [c.get_absolute_url() for c in visible_categories()]

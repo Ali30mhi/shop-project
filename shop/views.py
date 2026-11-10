@@ -102,6 +102,7 @@ def robots_txt(request):
         "Disallow: /kasse/",
         "Disallow: /konto/",
         "Disallow: /suche/",
+        "Disallow: /merkliste/",
         "",
         f"Sitemap: {absolute_url('/sitemap.xml')}",
     ]

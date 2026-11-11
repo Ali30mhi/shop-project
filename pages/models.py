@@ -1,7 +1,11 @@
+from django.core.validators import RegexValidator
 from django.db import models
 from django.urls import reverse
+from django.utils.functional import cached_property
 from django.utils.html import linebreaks
 from django.utils.safestring import mark_safe
+
+from . import branding
 
 
 class Page(models.Model):
@@ -35,6 +39,28 @@ class Page(models.Model):
 
 
 class StoreSettings(models.Model):
+    logo = models.ImageField(
+        "Logo", upload_to="site/", blank=True,
+        help_text="PNG oder WebP mit transparentem Hintergrund, Querformat, mindestens 80 px hoch. "
+                  "Leer = Buchstaben-Logo mit dem Shopnamen.",
+    )
+    logo_dark = models.ImageField(
+        "Logo für dunklen Hintergrund", upload_to="site/", blank=True,
+        help_text="Optional: helle Variante für das dunkle Design und den Footer. "
+                  "Leer = das Logo wird dort auf einer weißen Fläche gezeigt.",
+    )
+    favicon = models.ImageField(
+        "Favicon (Symbol im Browser-Tab)", upload_to="site/", blank=True,
+        help_text="Quadratisches PNG, mindestens 180 × 180 px. "
+                  "Leer = farbiges Quadrat mit dem ersten Buchstaben des Shopnamens.",
+    )
+    brand_color = models.CharField(
+        "Markenfarbe", max_length=7, default=branding.DEFAULT_COLOR,
+        validators=[RegexValidator(r"^#[0-9a-fA-F]{6}$", "Bitte eine Farbe im Format #rrggbb angeben.")],
+        help_text="Farbe für Buttons, Links und Akzente. Schriftfarbe und dunkles Design "
+                  "werden automatisch passend berechnet. Standard: #db3012 (Orange).",
+    )
+
     announcement = models.CharField(
         "Hinweisleiste", max_length=200, blank=True,
         default="Sichere Zahlung · Schneller Versand · 14 Tage Widerrufsrecht",
@@ -102,6 +128,33 @@ class StoreSettings(models.Model):
     def save(self, *args, **kwargs):
         self.pk = 1
         super().save(*args, **kwargs)
+
+    @cached_property
+    def brand_css(self):
+        """CSS-Variablen für eine eigene Markenfarbe (leer bei Standardfarbe)."""
+        return mark_safe(branding.brand_css(self.brand_color))
+
+    @cached_property
+    def logo_url(self):
+        return self._small_image(self.logo)
+
+    @cached_property
+    def logo_dark_url(self):
+        return self._small_image(self.logo_dark)
+
+    @cached_property
+    def favicon_url(self):
+        if not self.favicon:
+            return ""
+        from shop.images import build_icon
+        return build_icon(self.favicon) or self.favicon.url
+
+    @staticmethod
+    def _small_image(field_file):
+        if not field_file:
+            return ""
+        from shop.images import build_variant
+        return build_variant(field_file, 480) or field_file.url
 
     @classmethod
     def load(cls):

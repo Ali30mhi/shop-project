@@ -36,12 +36,20 @@ from django.conf import settings
 if "testserver" not in settings.ALLOWED_HOSTS:
     settings.ALLOWED_HOSTS = list(settings.ALLOWED_HOSTS) + ["testserver"]
 
+from io import BytesIO
+
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.test import Client
 from django.urls import reverse
 from django.utils.html import escape
+from PIL import Image
 
-from pages.models import Page
+from pages import branding
+from pages.models import Page, StoreSettings
 from shop.context_processors import visible_categories
 from shop.models import Product, ProductVariant
 
@@ -259,6 +267,110 @@ def check_wishlist():
     record(r.status_code == 404, "Merkliste: ungültiges Produkt liefert 404")
 
 
+def check_branding():
+    print("\n### MARKE (Logo, Favicon, Farbe)")
+    client = Client()
+    store = StoreSettings.load()
+    settings_row = StoreSettings.objects.filter(pk=store.pk)
+
+    def home():
+        return client.get("/").content.decode()
+
+    settings_row.update(brand_color=branding.DEFAULT_COLOR, logo="", logo_dark="", favicon="")
+    r = client.get("/favicon.svg")
+    ok = r.status_code == 200 and r["Content-Type"].startswith("image/svg+xml") and branding.DEFAULT_COLOR in r.content.decode()
+    print(f"    Standard-Favicon -> {r.status_code}, {r['Content-Type']}")
+    record(ok, "Marke: Standard-Favicon (SVG)")
+
+    html = home()
+    ok = 'rel="icon"' in html and 'id="brand-css"' not in html and "logo-mark" in html
+    print(f"    Standard: Favicon-Link, Buchstaben-Logo, keine Farb-Überschreibung: {ok}")
+    record(ok, "Marke: Standardzustand")
+
+    settings_row.update(brand_color="#1d4ed8")
+    ok = "--primary:#1d4ed8;" in home() and "#1d4ed8" in client.get("/favicon.svg").content.decode()
+    print(f"    Eigene Farbe (Blau) erscheint in Seite und Favicon: {ok}")
+    record(ok, "Marke: eigene Farbe")
+
+    settings_row.update(brand_color="#ffd400")
+    ok = "--primary:#ffd400;--primary-hover:#ffdf40;--on-primary:#18181b;" in home()
+    print(f"    Helle Farbe (Gelb) bekommt dunkle Schrift: {ok}")
+    record(ok, "Marke: Schriftfarbe bei heller Farbe")
+
+    worst = 99
+    for color in ("#db3012", "#1d4ed8", "#ffd400", "#ffffff", "#000000", "#16a34a", "#f9a8d4", "#777777"):
+        light, dark = branding.tones(color)
+        worst = min(
+            worst,
+            branding.contrast(branding.parse(light["--on-primary"]), branding.parse(light["--primary"])),
+            branding.contrast(branding.parse(light["--link"]), branding.WHITE),
+            branding.contrast(branding.parse(dark["--on-primary"]), branding.parse(dark["--primary"])),
+            branding.contrast(branding.parse(dark["--link"]), branding.INK),
+        )
+    print(f"    Kleinster Text-Kontrast über 8 Testfarben: {worst:.2f} (Soll: mindestens 4,5)")
+    record(worst >= 4.5, "Marke: Kontrast der berechneten Farben")
+
+    settings_row.update(brand_color="rot")
+    r = client.get("/")
+    ok = r.status_code == 200 and 'id="brand-css"' not in r.content.decode() and client.get("/favicon.svg").status_code == 200
+    print(f"    Ungültiger Farbwert in der Datenbank wird ignoriert: {ok}")
+    record(ok, "Marke: ungültiger Farbwert")
+
+    store.brand_color = "rot"
+    try:
+        store.full_clean()
+        ok = False
+    except ValidationError as error:
+        ok = "brand_color" in error.message_dict
+    print(f"    Verwaltung lehnt ungültigen Farbwert ab: {ok}")
+    record(ok, "Marke: Farb-Validierung")
+
+    settings_row.update(brand_color=branding.DEFAULT_COLOR)
+    buffer = BytesIO()
+    Image.new("RGBA", (600, 200), (29, 78, 216, 255)).save(buffer, "PNG")
+    name = default_storage.save(f"site/test-logo-{uuid.uuid4().hex[:8]}.png", ContentFile(buffer.getvalue()))
+    stem = name.rsplit(".", 1)[0]
+    logo_variant, icon_variant = f"cache/{stem}-480w.webp", f"cache/{stem}-180px.png"
+    try:
+        settings_row.update(logo=name)
+        html = home()
+        ok = 'class="logo-img logo-img--solo"' in html and "logo-mark" not in html and default_storage.exists(logo_variant)
+        print(f"    Logo hochgeladen: ersetzt das Buchstaben-Logo, verkleinerte Datei erzeugt: {ok}")
+        record(ok, "Marke: Logo")
+
+        settings_row.update(logo_dark=name)
+        html = home()
+        ok = 'class="logo-img logo-img--light"' in html and 'class="logo-img logo-img--dark"' in html
+        print(f"    Logo für dunklen Hintergrund wird zusätzlich ausgegeben: {ok}")
+        record(ok, "Marke: Logo für dunkles Design")
+
+        settings_row.update(favicon=name)
+        html = home()
+        ok = 'rel="apple-touch-icon"' in html and "favicon.svg" not in html and default_storage.exists(icon_variant)
+        if ok:
+            with default_storage.open(icon_variant, "rb") as icon_file:
+                ok = Image.open(icon_file).size == (180, 180)
+        print(f"    Favicon hochgeladen: quadratisches 180-px-PNG erzeugt und verlinkt: {ok}")
+        record(ok, "Marke: eigenes Favicon")
+    finally:
+        for path in (name, logo_variant, icon_variant):
+            if default_storage.exists(path):
+                default_storage.delete(path)
+        settings_row.update(logo="", logo_dark="", favicon="")
+
+    admin_user = get_user_model().objects.create_superuser(
+        email=f"test-{uuid.uuid4().hex[:8]}@example.com", password="SicheresPass123!",
+    )
+    client.force_login(admin_user)
+    r = client.get(reverse("admin:pages_storesettings_change", args=[store.pk]))
+    html = r.content.decode()
+    ok = r.status_code == 200 and 'type="color"' in html and all(
+        f'name="{field}"' in html for field in ("logo", "logo_dark", "favicon", "brand_color")
+    )
+    print(f"    Verwaltung zeigt Bereich „Marke“ mit Farbwähler -> {r.status_code}: {ok}")
+    record(ok, "Marke: Felder in der Verwaltung")
+
+
 def check_cart():
     print("\n### WARENKORB-FLOW (über gerenderte Seiten geprüft)")
     client = Client()
@@ -301,6 +413,7 @@ with transaction.atomic():
         check_account()
         check_catalog()
         check_wishlist()
+        check_branding()
         check_cart()
     finally:
         transaction.set_rollback(True)

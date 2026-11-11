@@ -30,7 +30,14 @@
   {% block og_image %}{% endblock %}
   <meta name="twitter:card" content="summary_large_image">
 
+  {% if store.favicon_url %}
+    <link rel="icon" type="image/png" href="{{ store.favicon_url }}">
+    <link rel="apple-touch-icon" href="{{ store.favicon_url }}">
+  {% else %}
+    <link rel="icon" type="image/svg+xml" href="{% url 'favicon_svg' %}?v={{ store.brand_color|slice:'1:' }}">
+  {% endif %}
   <link rel="stylesheet" href="{% static 'css/site.css' %}">
+  {% if store.brand_css %}<style id="brand-css">{{ store.brand_css }}</style>{% endif %}
   {% block structured_data %}{% endblock %}
 </head>
 <body data-open-cart="{% if open_cart_drawer %}true{% else %}false{% endif %}">
@@ -60,8 +67,13 @@
       </button>
 
       <a class="logo" href="{% url 'shop:home' %}">
-        <span class="logo-mark" aria-hidden="true">{{ SITE_NAME|first|upper }}</span>
-        <span class="logo-text">{{ SITE_NAME }}<small>Online-Shop aus Österreich</small></span>
+        {% if store.logo_url %}
+          <img class="logo-img {% if store.logo_dark_url %}logo-img--light{% else %}logo-img--solo{% endif %}" src="{{ store.logo_url }}" alt="{{ SITE_NAME }}">
+          {% if store.logo_dark_url %}<img class="logo-img logo-img--dark" src="{{ store.logo_dark_url }}" alt="{{ SITE_NAME }}">{% endif %}
+        {% else %}
+          <span class="logo-mark" aria-hidden="true">{{ SITE_NAME|first|upper }}</span>
+          <span class="logo-text">{{ SITE_NAME }}<small>Online-Shop aus Österreich</small></span>
+        {% endif %}
       </a>
 
       <form class="header-search" role="search" action="{% url 'shop:search' %}" method="get">
@@ -130,7 +142,15 @@
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
-          <p class="footer-logo"><span class="logo-mark" aria-hidden="true">{{ SITE_NAME|first|upper }}</span>{{ SITE_NAME }}</p>
+          <p class="footer-logo">
+            {% if store.logo_dark_url %}
+              <img class="logo-img" src="{{ store.logo_dark_url }}" alt="{{ SITE_NAME }}" loading="lazy">
+            {% elif store.logo_url %}
+              <img class="logo-img logo-img--solo" src="{{ store.logo_url }}" alt="{{ SITE_NAME }}" loading="lazy">
+            {% else %}
+              <span class="logo-mark" aria-hidden="true">{{ SITE_NAME|first|upper }}</span>{{ SITE_NAME }}
+            {% endif %}
+          </p>
           {% if SITE_DESCRIPTION %}<p class="footer-text">{{ SITE_DESCRIPTION }}</p>{% endif %}
           {% if store.contact_email or store.contact_phone %}
             <p class="footer-contact">

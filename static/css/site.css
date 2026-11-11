@@ -489,3 +489,34 @@ main { padding-top: 24px; padding-bottom: 64px; }
 @media (max-width: 380px) {
   .js .theme-toggle { display: none; }
 }
+
+/* Marke aus der Verwaltung (Shop-Einstellungen): Farbe und Logo.
+   Bei eigener Markenfarbe überschreibt base.html diese Variablen. */
+:root { --primary-ink: var(--primary); --wish: #db3012; --grad-a: #c2410c; --grad-b: #e11d48; --grad-c: #a21caf; }
+.hero { background: linear-gradient(135deg, var(--grad-a) 0%, var(--grad-b) 62%, var(--grad-c) 100%); }
+.category-tile:nth-child(4n+1) { background: linear-gradient(135deg, var(--grad-a), var(--grad-b)); }
+.help-band { background: linear-gradient(120deg, var(--grad-a), var(--grad-b)); }
+.trust-item svg, .wish-link[aria-pressed="true"] { color: var(--primary-ink); }
+.wish-btn[aria-pressed="true"] { color: var(--wish); }
+.gallery-thumb.is-active { border-color: var(--primary-ink); }
+.variant input { accent-color: var(--primary-ink); }
+.variant:has(input:checked), .size-option[aria-pressed="true"] { border-color: var(--primary-ink); box-shadow: 0 0 0 1px var(--primary-ink); }
+.swatch[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--primary-ink); }
+@media (hover: hover) {
+  .wish-btn:hover { color: var(--wish); }
+}
+.logo-img { display: block; flex: 0 1 auto; width: auto; min-width: 0; height: 40px; max-width: 220px; object-fit: contain; }
+.logo-img--dark { display: none; }
+.footer-logo .logo-img { height: 44px; }
+.footer-logo .logo-img--solo { padding: 5px 10px; border-radius: 8px; background: #ffffff; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .logo-img--light { display: none; }
+  :root:not([data-theme="light"]) .logo-img--dark { display: block; }
+  :root:not([data-theme="light"]) .logo-img--solo { padding: 5px 10px; border-radius: 8px; background: #ffffff; }
+}
+:root[data-theme="dark"] .logo-img--light { display: none; }
+:root[data-theme="dark"] .logo-img--dark { display: block; }
+:root[data-theme="dark"] .logo-img--solo { padding: 5px 10px; border-radius: 8px; background: #ffffff; }
+@media (max-width: 760px) {
+  .logo-img { height: 34px; max-width: 150px; }
+}

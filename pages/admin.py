@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.shortcuts import redirect
 from django.urls import reverse
@@ -15,6 +16,7 @@ class PageAdmin(admin.ModelAdmin):
 @admin.register(StoreSettings)
 class StoreSettingsAdmin(admin.ModelAdmin):
     fieldsets = (
+        ("Marke", {"fields": ("logo", "logo_dark", "favicon", "brand_color")}),
         ("Hinweisleiste", {"fields": ("announcement",)}),
         ("Versand & Service", {"fields": (
             "shipping_cost", "free_shipping_threshold", "delivery_time", "returns_note",
@@ -31,6 +33,14 @@ class StoreSettingsAdmin(admin.ModelAdmin):
             ("benefit_3_title", "benefit_3_text"),
         )}),
     )
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        if db_field.name == "brand_color":
+            # Farbwähler des Browsers statt Textfeld
+            kwargs["widget"] = forms.TextInput(attrs={
+                "type": "color", "style": "width: 6rem; height: 2.5rem; padding: 2px; cursor: pointer;",
+            })
+        return super().formfield_for_dbfield(db_field, request, **kwargs)
 
     def has_add_permission(self, request):
         return not StoreSettings.objects.exists()

@@ -95,6 +95,9 @@ write_page(response.content.decode("utf-8"), "404.html")
 settings.DEBUG = True
 print("OK: 404.html")
 
+(OUT / "favicon.svg").write_bytes(client.get("/favicon.svg").content)
+print("OK: favicon.svg")
+
 shutil.copytree(Path(settings.BASE_DIR) / "static", OUT / "static")
 shutil.copytree(Path(settings.MEDIA_ROOT), OUT / "media")
 (OUT / ".nojekyll").write_text("")

@@ -47,3 +47,23 @@ def responsive_sources(field_file):
         if url:
             sources.append((url, width))
     return sources
+
+
+def build_icon(field_file, size=180):
+    """Quadratisches PNG für Favicon und Apple-Touch-Icon (zentriert, ohne Verzerrung)."""
+    stem = PurePosixPath(field_file.name).with_suffix("")
+    name = f"cache/{stem}-{size}px.png"
+    if default_storage.exists(name):
+        return default_storage.url(name)
+    try:
+        with default_storage.open(field_file.name, "rb") as source:
+            image = ImageOps.exif_transpose(Image.open(source)).convert("RGBA")
+            image = ImageOps.contain(image, (size, size), Image.Resampling.LANCZOS)
+            canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+            canvas.paste(image, ((size - image.width) // 2, (size - image.height) // 2))
+            buffer = BytesIO()
+            canvas.save(buffer, "PNG", optimize=True)
+    except (OSError, ValueError):
+        return None
+    saved = default_storage.save(name, ContentFile(buffer.getvalue()))
+    return default_storage.url(saved)
